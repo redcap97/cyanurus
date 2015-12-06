@@ -1,0 +1,6 @@
+A?: data
+A?: heap
+A?: stack
+?B: data
+?B: heap
+?B: stack

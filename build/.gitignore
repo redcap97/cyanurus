@@ -1,0 +1,6 @@
+*
+!*/
+!.gitignore
+!Makefile
+!*.ld
+!*.mak
