@@ -804,6 +804,11 @@ void process_exit(int status) {
     }
   }
 
+  if (list_length(&all_processes) == 1) {
+    process_destroy(p);
+    system_shutdown();
+  }
+
   process_wake(&child_waitq);
 }
 
