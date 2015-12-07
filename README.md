@@ -1,6 +1,6 @@
 # Cyanurus
 
-Cyanurus is a Unix-like operating system for ARMv7-A
+Cyanurus is a Unix-like operating system for ARMv7-A.
 
 ## Build Dependencies
 
