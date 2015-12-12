@@ -2,6 +2,8 @@
 
 Cyanurus is a Unix-like operating system for ARMv7-A.
 
+![](https://cloud.githubusercontent.com/assets/928237/11760486/f36bf0ce-a0e0-11e5-9002-fdf4793b4ef0.gif)
+
 ## Build Dependencies
 
 ### Required
