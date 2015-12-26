@@ -22,6 +22,7 @@ limitations under the License.
 
 #define USER_ADDRESS_START ((uint8_t*)0x00010000)
 #define USER_ADDRESS_END   ((uint8_t*)0x60000000)
+#define IS_USER_ADDRESSS(address) ((uint8_t*)(address) >= USER_ADDRESS_START && (uint8_t*)(address) < USER_ADDRESS_END)
 
 #define WAIT_EXIT_CODE(status) (((status) & 0xff) << 8)
 #define WAIT_SIGNAL(signal) ((signal) & 0x7f)
