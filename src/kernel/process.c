@@ -46,7 +46,7 @@ limitations under the License.
 #define SEGMENT_FLAGS_GROWSDOWN (1 << 1)
 
 #define STACK_START ((uint8_t*)0x58000000)
-#define STACK_END   ((uint8_t*)0x60000000)
+#define STACK_END   USER_ADDRESS_END
 #define BRK_END     ((uint8_t*)0x10000000)
 
 #define INITIAL_HEAP_SIZE  0x10000
@@ -1420,4 +1420,8 @@ struct process *process_waitq_get_process(struct process_waitq *waitq) {
     return entry->process;
   }
   return NULL;
+}
+
+bool process_validate_executable_address(void *address) {
+  return (uint8_t*)address >= USER_ADDRESS_START && (uint8_t*)address < (BRK_END - INITIAL_HEAP_SIZE);
 }

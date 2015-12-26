@@ -74,6 +74,21 @@ struct elf_program_header {
   uint32_t align;
 };
 
+static bool validate_segment(const struct elf_segment *segment) {
+  uint8_t *addr = (void*)segment->addr;
+  uint32_t size = segment->memory_size;
+
+  if (segment->file_size > segment->memory_size) {
+    return false;
+  }
+
+  if (!process_validate_executable_address(addr) || !process_validate_executable_address(addr + size)) {
+    return false;
+  }
+
+  return true;
+}
+
 static void copy_segment(struct elf_segment *segment) {
   void *data = page_address(segment->page);
 
@@ -100,6 +115,10 @@ static int load_segment(struct elf_segment *segment, const struct elf_program_he
   segment->file_size   = header->file_size;
   segment->memory_size = header->memory_size;
   segment->page        = buddy_alloc(segment->file_size);
+
+  if (!validate_segment(segment)) {
+    goto fail;
+  }
 
   data = page_address(segment->page);
   size = fs_inode_read(dentry->inode, segment->file_size, header->offset, data);

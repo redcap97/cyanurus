@@ -20,6 +20,9 @@ limitations under the License.
 #include "lib/list.h"
 #include "lib/unix.h"
 
+#define USER_ADDRESS_START ((uint8_t*)0x00010000)
+#define USER_ADDRESS_END   ((uint8_t*)0x60000000)
+
 #define WAIT_EXIT_CODE(status) (((status) & 0xff) << 8)
 #define WAIT_SIGNAL(signal) ((signal) & 0x7f)
 #define WAIT_CORE_DUMP(coredump) (((coredump) ? 1 : 0) << 7)
@@ -82,5 +85,7 @@ int process_pipe2(int *pipefd, int flags);
 
 void process_waitq_init(struct process_waitq *waitq);
 struct process *process_waitq_get_process(struct process_waitq *waitq);
+
+bool process_validate_executable_address(void *address);
 
 #endif
