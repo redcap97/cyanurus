@@ -29,6 +29,11 @@ limitations under the License.
 #include "lib/errno.h"
 #include "user.h"
 
+static bool check_address_range(const void *p, size_t s) {
+  const uint8_t *data = p;
+  return IS_USER_ADDRESSS(data) && IS_USER_ADDRESSS(data + s);
+}
+
 static bool check_string(const char *s) {
   do {
     if (!IS_USER_ADDRESSS(s)) {
@@ -61,9 +66,17 @@ static bool check_avep(char **argv) {
   }
 }
 
-static bool check_address_range(const void *p, size_t s) {
-  const uint8_t *data = p;
-  return IS_USER_ADDRESSS(data) && IS_USER_ADDRESSS(data + s);
+static bool check_iovec(const struct iovec *iov, int iovcnt) {
+  int i;
+
+  for (i = 0; i < iovcnt; ++i) {
+    if (!check_address_range(iov, sizeof(struct iovec)) || !check_address_range(iov->iov_base, iov->iov_len)) {
+      return false;
+    }
+    iov++;
+  }
+
+  return true;
 }
 
 void syscall_exit(struct process_context *context) {
@@ -299,6 +312,11 @@ void syscall_readv(struct process_context *context) {
   const struct iovec *iov = (const struct iovec *)args[1];
   int iovcnt = args[2];
 
+  if (!check_iovec(iov, iovcnt)) {
+    args[0] = -EFAULT;
+    return;
+  }
+
   args[0] = process_readv(fd, iov, iovcnt);
 }
 
@@ -308,6 +326,11 @@ void syscall_writev(struct process_context *context) {
   int fd = args[0];
   const struct iovec *iov = (const struct iovec *)args[1];
   int iovcnt = args[2];
+
+  if (!check_iovec(iov, iovcnt)) {
+    args[0] = -EFAULT;
+    return;
+  }
 
   args[0] = process_writev(fd, iov, iovcnt);
 }
