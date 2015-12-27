@@ -37,9 +37,14 @@ static bool check_iovec(const struct iovec *iov, int iovcnt) {
   int i;
 
   for (i = 0; i < iovcnt; ++i) {
-    if (!check_address_range(iov, sizeof(struct iovec)) || !check_address_range(iov->iov_base, iov->iov_len)) {
+    if (!check_address_range(iov, sizeof(struct iovec))) {
       return false;
     }
+
+    if (iov->iov_len && !check_address_range(iov->iov_base, iov->iov_len)) {
+      return false;
+    }
+
     iov++;
   }
 
