@@ -39,6 +39,28 @@ static bool check_string(const char *s) {
   return true;
 }
 
+static bool check_avep(char **argv) {
+  if (!argv) {
+    return true;
+  }
+
+  while (1) {
+    if (!IS_USER_ADDRESSS(argv)) {
+      return false;
+    }
+
+    if (!*argv) {
+      return true;
+    }
+
+    if (!check_string(*argv)) {
+      return false;
+    }
+
+    argv++;
+  }
+}
+
 static bool check_address_range(const void *p, size_t s) {
   const uint8_t *data = p;
   return IS_USER_ADDRESSS(data) && IS_USER_ADDRESSS(data + s);
@@ -128,7 +150,7 @@ void syscall_execve(struct process_context *context) {
   char **argv = (char**)args[1];
   char **envp = (char**)args[2];
 
-  if (!check_string(path)) {
+  if (!check_string(path) || !check_avep(argv) || !check_avep(envp)) {
     args[0] = -EFAULT;
     return;
   }
