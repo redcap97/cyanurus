@@ -29,6 +29,16 @@ limitations under the License.
 #include "lib/errno.h"
 #include "user.h"
 
+static bool check_string(const char *s) {
+  do {
+    if (!IS_USER_ADDRESSS(s)) {
+      return false;
+    }
+  } while (*s++);
+
+  return true;
+}
+
 static bool check_address_range(const void *p, size_t s) {
   const uint8_t *data = p;
   return IS_USER_ADDRESSS(data) && IS_USER_ADDRESSS(data + s);
@@ -83,6 +93,11 @@ void syscall_open(struct process_context *context) {
   int flags = args[1];
   mode_t mode = (mode_t)args[2];
 
+  if (!check_string(path)) {
+    args[0] = -EFAULT;
+    return;
+  }
+
   args[0] = process_open(path, flags, mode);
 }
 
@@ -97,15 +112,26 @@ void syscall_unlink(struct process_context *context) {
   uint32_t *args = &context->r[0];
   const char *path = (const char*)context->r[0];
 
+  if (!check_string(path)) {
+    args[0] = -EFAULT;
+    return;
+  }
+
   args[0] = fs_unlink(path);
 }
 
 void syscall_execve(struct process_context *context) {
   int r;
+  uint32_t *args = &context->r[0];
 
-  const char *path = (const char*)context->r[0];
-  char **argv = (char**)context->r[1];
-  char **envp = (char**)context->r[2];
+  const char *path = (const char*)args[0];
+  char **argv = (char**)args[1];
+  char **envp = (char**)args[2];
+
+  if (!check_string(path)) {
+    args[0] = -EFAULT;
+    return;
+  }
 
   if ((r = process_exec(path, argv, envp)) < 0) {
     context->r[0] = (uint32_t)r;
@@ -137,13 +163,23 @@ void syscall_mkdir(struct process_context *context) {
   const char *path = (const char*)args[0];
   uint32_t mode = args[1];
 
+  if (!check_string(path)) {
+    args[0] = -EFAULT;
+    return;
+  }
+
   args[0] = fs_mkdir(path, mode);
 }
 
 void syscall_rmdir(struct process_context *context) {
   uint32_t *args = &context->r[0];
-
   const char *path = (const char*)args[0];
+
+  if (!check_string(path)) {
+    args[0] = -EFAULT;
+    return;
+  }
+
   args[0] = fs_rmdir(path);
 }
 
@@ -272,6 +308,12 @@ void syscall_stat64(struct process_context *context) {
 
   char *path = (char*)args[0];
   struct stat64 *buf = (struct stat64*)args[1];
+
+  if (!check_string(path)) {
+    args[0] = -EFAULT;
+    return;
+  }
+
   args[0] = fs_lstat64(path, buf);
 }
 
@@ -288,6 +330,12 @@ void syscall_lstat64(struct process_context *context) {
 
   char *path = (char*)args[0];
   struct stat64 *buf = (struct stat64*)args[1];
+
+  if (!check_string(path)) {
+    args[0] = -EFAULT;
+    return;
+  }
+
   args[0] = fs_lstat64(path, buf);
 }
 
