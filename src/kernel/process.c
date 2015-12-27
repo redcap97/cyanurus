@@ -31,6 +31,7 @@ limitations under the License.
 #include "fs/dentry.h"
 #include "fs/inode.h"
 #include "file.h"
+#include "user.h"
 
 #define MAX_PROCESS_SIZE 8
 #define MAX_FD_SIZE      32
