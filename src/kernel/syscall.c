@@ -34,6 +34,19 @@ static bool check_address_range(const void *p, size_t s) {
   return IS_USER_ADDRESSS(data) && IS_USER_ADDRESSS(data + s);
 }
 
+static bool check_iovec(const struct iovec *iov, int iovcnt) {
+  int i;
+
+  for (i = 0; i < iovcnt; ++i) {
+    if (!check_address_range(iov, sizeof(struct iovec)) || !check_address_range(iov->iov_base, iov->iov_len)) {
+      return false;
+    }
+    iov++;
+  }
+
+  return true;
+}
+
 static bool check_string(const char *s) {
   do {
     if (!IS_USER_ADDRESSS(s)) {
@@ -64,19 +77,6 @@ static bool check_avep(char **argv) {
 
     argv++;
   }
-}
-
-static bool check_iovec(const struct iovec *iov, int iovcnt) {
-  int i;
-
-  for (i = 0; i < iovcnt; ++i) {
-    if (!check_address_range(iov, sizeof(struct iovec)) || !check_address_range(iov->iov_base, iov->iov_len)) {
-      return false;
-    }
-    iov++;
-  }
-
-  return true;
 }
 
 void syscall_exit(struct process_context *context) {
