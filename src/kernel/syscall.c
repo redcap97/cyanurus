@@ -23,44 +23,61 @@ limitations under the License.
 #include "lib/type.h"
 #include "lib/unix.h"
 #include "fs.h"
+#include "fs/dentry.h"
 #include "logger.h"
 #include "lib/string.h"
 #include "lib/errno.h"
+#include "user.h"
+
+static bool check_address_range(const void *p, size_t s) {
+  const uint8_t *data = p;
+  return IS_USER_ADDRESSS(data) && IS_USER_ADDRESSS(data + s);
+}
 
 void syscall_exit(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
+  uint32_t *args = &context->r[0];
 
   int status = args[0];
   process_exit(WAIT_EXIT_CODE(status));
 }
 
 void syscall_fork(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
+  uint32_t *args = &context->r[0];
   args[0] = process_fork(context);
 }
 
 void syscall_read(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
+  uint32_t *args = &context->r[0];
 
-  int fd      = args[0];
-  void *data  = (void*)args[1];
+  int fd = args[0];
+  void *data = (void*)args[1];
   size_t size = (size_t)args[2];
+
+  if (!check_address_range(data, size)) {
+    args[0] = -EFAULT;
+    return;
+  }
 
   args[0] = process_read(fd, data, size);
 }
 
 void syscall_write(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
+  uint32_t *args = &context->r[0];
 
-  int fd            = args[0];
-  const void *data  = (const void*)args[1];
-  size_t size       = (size_t)args[2];
+  int fd = args[0];
+  const void *data = (const void*)args[1];
+  size_t size = (size_t)args[2];
+
+  if (!check_address_range(data, size)) {
+    args[0] = -EFAULT;
+    return;
+  }
 
   args[0] = process_write(fd, data, size);
 }
 
 void syscall_open(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
+  uint32_t *args = &context->r[0];
 
   const char *path = (const char*)args[0];
   int flags = args[1];
@@ -70,15 +87,16 @@ void syscall_open(struct process_context *context) {
 }
 
 void syscall_close(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
+  uint32_t *args = &context->r[0];
 
   int fd = args[0];
   args[0] = process_close(fd);
 }
 
 void syscall_unlink(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
+  uint32_t *args = &context->r[0];
   const char *path = (const char*)context->r[0];
+
   args[0] = fs_unlink(path);
 }
 
@@ -105,7 +123,7 @@ void syscall_getppid(struct process_context *context) {
 }
 
 void syscall_kill(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
+  uint32_t *args = &context->r[0];
 
   pid_t pid = (pid_t)args[0];
   int sig = (int)args[1];
@@ -114,7 +132,7 @@ void syscall_kill(struct process_context *context) {
 }
 
 void syscall_mkdir(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
+  uint32_t *args = &context->r[0];
 
   const char *path = (const char*)args[0];
   uint32_t mode = args[1];
@@ -123,27 +141,27 @@ void syscall_mkdir(struct process_context *context) {
 }
 
 void syscall_rmdir(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
+  uint32_t *args = &context->r[0];
 
   const char *path = (const char*)args[0];
   args[0] = fs_rmdir(path);
 }
 
 void syscall_dup(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
+  uint32_t *args = &context->r[0];
   int fd = args[0];
   args[0] = process_dupfd(fd, 0, 0);
 }
 
 void syscall_dup2(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
+  uint32_t *args = &context->r[0];
   int oldfd = args[0];
   int newfd = args[1];
   args[0] = process_dup2(oldfd, newfd);
 }
 
 void syscall_dup3(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
+  uint32_t *args = &context->r[0];
   int oldfd = args[0];
   int newfd = args[1];
   int flags = args[2];
@@ -151,27 +169,27 @@ void syscall_dup3(struct process_context *context) {
 }
 
 void syscall_pipe(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
+  uint32_t *args = &context->r[0];
   int *pipefd = (int*)args[0];
   args[0] = process_pipe(pipefd);
 }
 
 void syscall_pipe2(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
+  uint32_t *args = &context->r[0];
   int *pipefd = (int*)args[0];
   int flags = (int)args[1];
   args[0] = process_pipe2(pipefd, flags);
 }
 
 void syscall_brk(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
+  uint32_t *args = &context->r[0];
 
   uint32_t address = (uint32_t)args[0];
   args[0] = process_brk(address);
 }
 
 void syscall_ioctl(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
+  uint32_t *args = &context->r[0];
   int fd = (int)args[0];
   unsigned long request = (unsigned long)args[1];
   void *argp = (void*)args[2];
@@ -200,7 +218,7 @@ void syscall_rt_sigprocmask(struct process_context *context) {
 }
 
 void syscall_wait4(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
+  uint32_t *args = &context->r[0];
   int *status = (int*)args[1];
 
   args[0] = process_wait(status);
@@ -211,13 +229,13 @@ void syscall_sigreturn(struct process_context *context) {
 }
 
 void syscall_uname(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
+  uint32_t *args = &context->r[0];
   struct utsname *uts = (struct utsname *)args[0];
   args[0] = system_uname(uts);
 }
 
 void syscall_readv(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
+  uint32_t *args = &context->r[0];
 
   int fd = args[0];
   const struct iovec *iov = (const struct iovec *)args[1];
@@ -227,7 +245,7 @@ void syscall_readv(struct process_context *context) {
 }
 
 void syscall_writev(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
+  uint32_t *args = &context->r[0];
 
   int fd = args[0];
   const struct iovec *iov = (const struct iovec *)args[1];
@@ -237,7 +255,7 @@ void syscall_writev(struct process_context *context) {
 }
 
 void syscall_getcwd(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
+  uint32_t *args = &context->r[0];
 
   char *buf = (char*)args[0];
   size_t size = (size_t)args[1];
