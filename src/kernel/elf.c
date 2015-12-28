@@ -16,6 +16,7 @@ limitations under the License.
 
 #include "elf.h"
 #include "lib/string.h"
+#include "lib/arithmetic.h"
 #include "fs.h"
 #include "fs/dentry.h"
 #include "fs/inode.h"
@@ -79,6 +80,10 @@ static bool validate_segment(const struct elf_segment *segment) {
   uint32_t size = segment->memory_size;
 
   if (segment->file_size > segment->memory_size) {
+    return false;
+  }
+
+  if (add_overflow_unsigned_long((unsigned long)addr, size)) {
     return false;
   }
 

@@ -26,10 +26,16 @@ limitations under the License.
 #include "lib/string.h"
 #include "lib/errno.h"
 #include "lib/termios.h"
+#include "lib/arithmetic.h"
 #include "user.h"
 
 static bool check_address_range(const void *p, size_t s) {
   const uint8_t *data = p;
+
+  if (add_overflow_unsigned_long((unsigned long)data, s)) {
+    return false;
+  }
+
   return IS_USER_ADDRESSS(data) && IS_USER_ADDRESSS(data + s);
 }
 
