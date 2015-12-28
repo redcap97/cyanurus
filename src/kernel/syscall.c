@@ -67,25 +67,25 @@ static bool check_string(const char *s) {
   return true;
 }
 
-static bool check_avep(char **argv) {
-  if (!argv) {
+static bool check_avep(char **avep) {
+  if (!avep) {
     return true;
   }
 
   while (1) {
-    if (!IS_USER_ADDRESSS(argv)) {
+    if (!IS_USER_ADDRESSS(avep)) {
       return false;
     }
 
-    if (!*argv) {
+    if (!*avep) {
       return true;
     }
 
-    if (!check_string(*argv)) {
+    if (!check_string(*avep)) {
       return false;
     }
 
-    argv++;
+    avep++;
   }
 }
 
