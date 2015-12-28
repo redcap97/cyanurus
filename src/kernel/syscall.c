@@ -296,11 +296,15 @@ void syscall_ioctl(struct process_context *context) {
         goto fail;
       }
       break;
+
     case TIOCGWINSZ:
       if (!check_address_range(argp, sizeof(struct winsize))) {
         goto fail;
       }
       break;
+
+    default:
+      argp = NULL;
   }
 
   args[0] = process_ioctl(fd, request, argp);
