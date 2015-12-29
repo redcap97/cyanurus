@@ -144,3 +144,8 @@ TEST(unistd_unlink);
 $fixture copy_test_target
 */
 TEST(unistd_getcwd);
+
+/*
+$fixture copy_test_target
+*/
+TEST(unistd_syscall_EFAULT);
