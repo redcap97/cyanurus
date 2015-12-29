@@ -14,8 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-/* FIXME: must check syscall arguments */
-
 #include "syscall.h"
 #include "system.h"
 #include "mmu.h"
@@ -23,71 +21,162 @@ limitations under the License.
 #include "lib/type.h"
 #include "lib/unix.h"
 #include "fs.h"
+#include "fs/dentry.h"
 #include "logger.h"
 #include "lib/string.h"
 #include "lib/errno.h"
+#include "lib/termios.h"
+#include "lib/arithmetic.h"
+#include "user.h"
+
+static bool check_address_range(const void *p, size_t s) {
+  const uint8_t *data = p;
+
+  if (add_overflow_unsigned_long((unsigned long)data, s)) {
+    return false;
+  }
+
+  return IS_USER_ADDRESSS(data) && IS_USER_ADDRESSS(data + s);
+}
+
+static bool check_iovec(const struct iovec *iov, int iovcnt) {
+  int i;
+
+  for (i = 0; i < iovcnt; ++i) {
+    if (!check_address_range(iov, sizeof(struct iovec))) {
+      return false;
+    }
+
+    if (iov->iov_len && !check_address_range(iov->iov_base, iov->iov_len)) {
+      return false;
+    }
+
+    iov++;
+  }
+
+  return true;
+}
+
+static bool check_string(const char *s) {
+  do {
+    if (!IS_USER_ADDRESSS(s)) {
+      return false;
+    }
+  } while (*s++);
+
+  return true;
+}
+
+static bool check_avep(char **avep) {
+  if (!avep) {
+    return true;
+  }
+
+  while (1) {
+    if (!IS_USER_ADDRESSS(avep)) {
+      return false;
+    }
+
+    if (!*avep) {
+      return true;
+    }
+
+    if (!check_string(*avep)) {
+      return false;
+    }
+
+    avep++;
+  }
+}
 
 void syscall_exit(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
+  uint32_t *args = &context->r[0];
 
   int status = args[0];
   process_exit(WAIT_EXIT_CODE(status));
 }
 
 void syscall_fork(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
+  uint32_t *args = &context->r[0];
   args[0] = process_fork(context);
 }
 
 void syscall_read(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
+  uint32_t *args = &context->r[0];
 
-  int fd      = args[0];
-  void *data  = (void*)args[1];
+  int fd = args[0];
+  void *data = (void*)args[1];
   size_t size = (size_t)args[2];
+
+  if (!check_address_range(data, size)) {
+    args[0] = -EFAULT;
+    return;
+  }
 
   args[0] = process_read(fd, data, size);
 }
 
 void syscall_write(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
+  uint32_t *args = &context->r[0];
 
-  int fd            = args[0];
-  const void *data  = (const void*)args[1];
-  size_t size       = (size_t)args[2];
+  int fd = args[0];
+  const void *data = (const void*)args[1];
+  size_t size = (size_t)args[2];
+
+  if (!check_address_range(data, size)) {
+    args[0] = -EFAULT;
+    return;
+  }
 
   args[0] = process_write(fd, data, size);
 }
 
 void syscall_open(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
+  uint32_t *args = &context->r[0];
 
   const char *path = (const char*)args[0];
   int flags = args[1];
   mode_t mode = (mode_t)args[2];
 
+  if (!check_string(path)) {
+    args[0] = -EFAULT;
+    return;
+  }
+
   args[0] = process_open(path, flags, mode);
 }
 
 void syscall_close(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
+  uint32_t *args = &context->r[0];
 
   int fd = args[0];
   args[0] = process_close(fd);
 }
 
 void syscall_unlink(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
+  uint32_t *args = &context->r[0];
   const char *path = (const char*)context->r[0];
+
+  if (!check_string(path)) {
+    args[0] = -EFAULT;
+    return;
+  }
+
   args[0] = fs_unlink(path);
 }
 
 void syscall_execve(struct process_context *context) {
   int r;
+  uint32_t *args = &context->r[0];
 
-  const char *path = (const char*)context->r[0];
-  char **argv = (char**)context->r[1];
-  char **envp = (char**)context->r[2];
+  const char *path = (const char*)args[0];
+  char **argv = (char**)args[1];
+  char **envp = (char**)args[2];
+
+  if (!check_string(path) || !check_avep(argv) || !check_avep(envp)) {
+    args[0] = -EFAULT;
+    return;
+  }
 
   if ((r = process_exec(path, argv, envp)) < 0) {
     context->r[0] = (uint32_t)r;
@@ -105,7 +194,7 @@ void syscall_getppid(struct process_context *context) {
 }
 
 void syscall_kill(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
+  uint32_t *args = &context->r[0];
 
   pid_t pid = (pid_t)args[0];
   int sig = (int)args[1];
@@ -114,36 +203,46 @@ void syscall_kill(struct process_context *context) {
 }
 
 void syscall_mkdir(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
+  uint32_t *args = &context->r[0];
 
   const char *path = (const char*)args[0];
   uint32_t mode = args[1];
+
+  if (!check_string(path)) {
+    args[0] = -EFAULT;
+    return;
+  }
 
   args[0] = fs_mkdir(path, mode);
 }
 
 void syscall_rmdir(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
-
+  uint32_t *args = &context->r[0];
   const char *path = (const char*)args[0];
+
+  if (!check_string(path)) {
+    args[0] = -EFAULT;
+    return;
+  }
+
   args[0] = fs_rmdir(path);
 }
 
 void syscall_dup(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
+  uint32_t *args = &context->r[0];
   int fd = args[0];
   args[0] = process_dupfd(fd, 0, 0);
 }
 
 void syscall_dup2(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
+  uint32_t *args = &context->r[0];
   int oldfd = args[0];
   int newfd = args[1];
   args[0] = process_dup2(oldfd, newfd);
 }
 
 void syscall_dup3(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
+  uint32_t *args = &context->r[0];
   int oldfd = args[0];
   int newfd = args[1];
   int flags = args[2];
@@ -151,32 +250,68 @@ void syscall_dup3(struct process_context *context) {
 }
 
 void syscall_pipe(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
+  uint32_t *args = &context->r[0];
   int *pipefd = (int*)args[0];
+
+  if (!check_address_range(pipefd, sizeof(int) * 2)) {
+    args[0] = -EFAULT;
+    return;
+  }
+
   args[0] = process_pipe(pipefd);
 }
 
 void syscall_pipe2(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
+  uint32_t *args = &context->r[0];
   int *pipefd = (int*)args[0];
   int flags = (int)args[1];
+
+  if (!check_address_range(pipefd, sizeof(int) * 2)) {
+    args[0] = -EFAULT;
+    return;
+  }
+
   args[0] = process_pipe2(pipefd, flags);
 }
 
 void syscall_brk(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
+  uint32_t *args = &context->r[0];
 
   uint32_t address = (uint32_t)args[0];
   args[0] = process_brk(address);
 }
 
 void syscall_ioctl(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
+  uint32_t *args = &context->r[0];
   int fd = (int)args[0];
   unsigned long request = (unsigned long)args[1];
   void *argp = (void*)args[2];
 
+  switch (request) {
+    case TCGETS:
+    case TCSETS:
+    case TCSETSW:
+    case TCSETSF:
+      if (!check_address_range(argp, sizeof(struct termios))) {
+        goto fail;
+      }
+      break;
+
+    case TIOCGWINSZ:
+      if (!check_address_range(argp, sizeof(struct winsize))) {
+        goto fail;
+      }
+      break;
+
+    default:
+      argp = NULL;
+  }
+
   args[0] = process_ioctl(fd, request, argp);
+  return;
+
+fail:
+  args[0] = -EFAULT;
 }
 
 void syscall_rt_sigaction(struct process_context *context) {
@@ -186,7 +321,19 @@ void syscall_rt_sigaction(struct process_context *context) {
   struct k_sigaction *ksa = (struct k_sigaction*)args[1];
   struct k_sigaction *ksa_old = (struct k_sigaction*)args[2];
 
+  if (ksa && !check_address_range(ksa, sizeof(struct k_sigaction))) {
+    goto fail;
+  }
+
+  if (ksa_old && !check_address_range(ksa_old, sizeof(struct k_sigaction))) {
+    goto fail;
+  }
+
   args[0] = process_sigaction(signum, ksa, ksa_old);
+  return;
+
+fail:
+  args[0] = -EFAULT;
 }
 
 void syscall_rt_sigprocmask(struct process_context *context) {
@@ -196,12 +343,29 @@ void syscall_rt_sigprocmask(struct process_context *context) {
   const sigset_t *set = (const sigset_t *)args[1];
   sigset_t *oldset = (sigset_t *)args[2];
 
+  if (set && !check_address_range(set, sizeof(sigset_t))) {
+    goto fail;
+  }
+
+  if (oldset && !check_address_range(oldset, sizeof(sigset_t))) {
+    goto fail;
+  }
+
   args[0] = process_sigprocmask(how, set, oldset);
+  return;
+
+fail:
+  args[0] = -EFAULT;
 }
 
 void syscall_wait4(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
+  uint32_t *args = &context->r[0];
   int *status = (int*)args[1];
+
+  if (!check_address_range(status, sizeof(int))) {
+    args[0] = -EFAULT;
+    return;
+  }
 
   args[0] = process_wait(status);
 }
@@ -211,42 +375,64 @@ void syscall_sigreturn(struct process_context *context) {
 }
 
 void syscall_uname(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
+  uint32_t *args = &context->r[0];
   struct utsname *uts = (struct utsname *)args[0];
+
+  if (!check_address_range(uts, sizeof(struct utsname))) {
+    args[0] = -EFAULT;
+    return;
+  }
+
   args[0] = system_uname(uts);
 }
 
 void syscall_readv(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
+  uint32_t *args = &context->r[0];
 
   int fd = args[0];
   const struct iovec *iov = (const struct iovec *)args[1];
   int iovcnt = args[2];
+
+  if (!check_iovec(iov, iovcnt)) {
+    args[0] = -EFAULT;
+    return;
+  }
 
   args[0] = process_readv(fd, iov, iovcnt);
 }
 
 void syscall_writev(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
+  uint32_t *args = &context->r[0];
 
   int fd = args[0];
   const struct iovec *iov = (const struct iovec *)args[1];
   int iovcnt = args[2];
 
+  if (!check_iovec(iov, iovcnt)) {
+    args[0] = -EFAULT;
+    return;
+  }
+
   args[0] = process_writev(fd, iov, iovcnt);
 }
 
 void syscall_getcwd(struct process_context *context) {
-  uint32_t *args  = &context->r[0];
+  uint32_t *args = &context->r[0];
 
   char *buf = (char*)args[0];
   size_t size = (size_t)args[1];
 
-  if (size > 1) {
-    strcpy(buf, "/");
-  } else {
-    args[0] = (uint32_t)NULL;
+  if (size < 2) {
+    args[0] = -ERANGE;
+    return;
   }
+
+  if (!check_address_range(buf, size)) {
+    args[0] = -EFAULT;
+    return;
+  }
+
+  strcpy(buf, "/");
 }
 
 void syscall_stat64(struct process_context *context) {
@@ -254,6 +440,12 @@ void syscall_stat64(struct process_context *context) {
 
   char *path = (char*)args[0];
   struct stat64 *buf = (struct stat64*)args[1];
+
+  if (!check_string(path) || !check_address_range(buf, sizeof(struct stat64))) {
+    args[0] = -EFAULT;
+    return;
+  }
+
   args[0] = fs_lstat64(path, buf);
 }
 
@@ -262,6 +454,12 @@ void syscall_fstat64(struct process_context *context) {
 
   int fd = args[0];
   struct stat64 *buf = (struct stat64*)args[1];
+
+  if (!check_address_range(buf, sizeof(struct stat64))) {
+    args[0] = -EFAULT;
+    return;
+  }
+
   args[0] = process_fstat64(fd, buf);
 }
 
@@ -270,6 +468,12 @@ void syscall_lstat64(struct process_context *context) {
 
   char *path = (char*)args[0];
   struct stat64 *buf = (struct stat64*)args[1];
+
+  if (!check_string(path) || !check_address_range(buf, sizeof(struct stat64))) {
+    args[0] = -EFAULT;
+    return;
+  }
+
   args[0] = fs_lstat64(path, buf);
 }
 
@@ -279,6 +483,11 @@ void syscall_getdents64(struct process_context *context) {
   int fd = (int)args[0];
   struct dirent64 *data = (struct dirent64*)args[1];
   size_t size = (size_t)args[2];
+
+  if (!check_address_range(data, size)) {
+    args[0] = -EFAULT;
+    return;
+  }
 
   args[0] = process_getdents64(fd, data, size);
 }
