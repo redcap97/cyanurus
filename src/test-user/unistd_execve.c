@@ -19,20 +19,9 @@ limitations under the License.
 #include <stdio.h>
 #include <unistd.h>
 
+#include "unistd_execve.h"
+
 int main(int argc, char *argv[]) {
-  char *av[] = {
-    "ONE",
-    "TWO",
-    "THREE",
-    NULL,
-  };
-
-  char *ep[] = {
-    "PATH=/bin",
-    "TERM=vt100",
-    NULL,
-  };
-
   TEST_START();
 
   TEST_ASSERT(argc == 1);

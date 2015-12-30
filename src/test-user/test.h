@@ -14,8 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#ifndef _CYANURUS_USER_TEST_H_
-#define _CYANURUS_USER_TEST_H_
+#ifndef _CYANURUS_TEST_USER_TEST_H_
+#define _CYANURUS_TEST_USER_TEST_H_
 
 #include <stdio.h>
 
