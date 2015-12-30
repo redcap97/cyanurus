@@ -1,5 +1,5 @@
 /*
-Copyright 2014 Akira Midorikawa
+Copyright 2015 Akira Midorikawa
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,27 +14,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include <test.h>
-#include <string.h>
-#include <stdio.h>
-#include <unistd.h>
+#ifndef _CYANURUS_TEST_USER_UNISTD_EXECVE_H_
+#define _CYANURUS_TEST_USER_UNISTD_EXECVE_H_
 
-#include "unistd_execve.h"
+static char *av[] = {
+  "ONE",
+  "TWO",
+  "THREE",
+  NULL,
+};
 
-extern char **environ;
+static char *ep[] = {
+  "PATH=/bin",
+  "TERM=vt100",
+  NULL,
+};
 
-int main(int argc, char *argv[]) {
-  int i;
-
-  TEST_ASSERT(argc == 3);
-
-  for (i = 0; av[i]; ++i) {
-    TEST_ASSERT(strcmp(av[i], argv[i]) == 0);
-  }
-
-  for (i = 0; ep[i]; ++i) {
-    TEST_ASSERT(strcmp(ep[i], environ[i]) == 0);
-  }
-
-  TEST_SUCCEED();
-}
+#endif
