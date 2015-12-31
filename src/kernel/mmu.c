@@ -55,29 +55,41 @@ extern char vectors_end;
 struct mapping {
   struct list next;
   pid_t pid;
+  struct page *page_head;
   uint32_t *address;
 };
 
 static struct list mappings;
 static struct slab_cache *mapping_cache;
 
-static uint32_t *mmu_create_pl1(void) {
-  return memset(page_address(buddy_alloc(L1_SIZE)), 0, L1_SIZE);
+static void add_page(struct mapping *mapping, struct page *page) {
+  page->next = mapping->page_head;
+  mapping->page_head = page;
 }
 
-static uint32_t *mmu_create_pl2(void) {
-  return memset(page_address(buddy_alloc(L2_SIZE)), 0, L2_SIZE);
+static uint32_t *mmu_create_pl1(struct mapping *mapping) {
+  struct page *page = buddy_alloc(L1_SIZE);
+  add_page(mapping, page);
+  return memset(page_address(page), 0, L1_SIZE);
 }
 
-static uint32_t *mmu_create_page(void) {
-  return page_address(buddy_alloc(PAGE_SIZE));
+static uint32_t *mmu_create_pl2(struct mapping *mapping) {
+  struct page *page = buddy_alloc(L2_SIZE);
+  add_page(mapping, page);
+  return memset(page_address(page), 0, L2_SIZE);
+}
+
+static uint32_t *mmu_create_page(struct mapping *mapping) {
+  struct page *page = buddy_alloc(PAGE_SIZE);
+  add_page(mapping, page);
+  return page_address(page);
 }
 
 static uint32_t *mmu_create_and_fill_pl2(struct mapping *mapping, uint32_t l1_i) {
   uint32_t *pl1 = mapping->address, *pl2;
 
   if (!(pl1[l1_i] & FL_PAGE_TABLE)) {
-    pl2 = mmu_create_pl2();
+    pl2 = mmu_create_pl2(mapping);
     pl1[l1_i] = (0xfffffc00 & (uint32_t)pl2) | FL_PAGE_TABLE;
   }
 
@@ -94,7 +106,7 @@ static int mmu_create_mapping(struct mapping *mapping, uint32_t addr, size_t siz
 
   pl2 = mmu_create_and_fill_pl2(mapping, l1_i);
   for (i = l2_i; i < (l2_i + GET_PAGE_SIZE(size)); ++i) {
-    page = mmu_create_page();
+    page = mmu_create_page(mapping);
     pl2[i] = (uint32_t)page | SL_SHORT_DESCRIPTOR | (is_privileged ? AP_PRIVILEGED_ACCESS : AP_FULL_ACCESS);
   }
 
@@ -123,7 +135,7 @@ static void mmu_create_vectors_mapping(struct mapping *mapping) {
   uint32_t l2_i = GET_L2_INDEX(VIRT_VECTORS_ADDR);
 
   uint32_t *pl2 = mmu_create_and_fill_pl2(mapping, l1_i);
-  uint32_t *page = mmu_create_page();
+  uint32_t *page = mmu_create_page(mapping);
 
   memcpy(page, &vectors_start, (&vectors_end - &vectors_start));
   pl2[l2_i] = (uint32_t)page | SL_SHORT_DESCRIPTOR | AP_PRIVILEGED_ACCESS;
@@ -158,10 +170,10 @@ static struct mapping *mmu_mapping_fetch(pid_t pid) {
     }
   }
 
-  mapping = slab_cache_alloc(mapping_cache);
+  mapping = memset(slab_cache_alloc(mapping_cache), 0, sizeof(struct mapping));
   mapping->pid = pid;
 
-  mapping->address = mmu_create_pl1();
+  mapping->address = mmu_create_pl1(mapping);
   mmu_create_kernel_mappings(mapping);
 
   list_add(&mappings, &mapping->next);
