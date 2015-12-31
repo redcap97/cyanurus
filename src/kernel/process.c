@@ -355,7 +355,10 @@ static void process_destroy(struct process *p) {
     }
   }
 
-  buddy_free(page_find_by_address(p->kernel_stack));
+  if (p->id != current_process->id) {
+    buddy_free(page_find_by_address(p->kernel_stack));
+  }
+
   slab_cache_free(process_cache, p);
 }
 
