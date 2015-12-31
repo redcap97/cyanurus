@@ -73,9 +73,8 @@ static uint32_t *mmu_create_page(void) {
   return page_address(buddy_alloc(PAGE_SIZE));
 }
 
-static uint32_t *mmu_create_and_fill_pl2(uint32_t *pl1, uint32_t l1_i) {
-  uint32_t i, *pl2;
-  (void)i;
+static uint32_t *mmu_create_and_fill_pl2(struct mapping *mapping, uint32_t l1_i) {
+  uint32_t *pl1 = mapping->address, *pl2;
 
   if (!(pl1[l1_i] & FL_PAGE_TABLE)) {
     pl2 = mmu_create_pl2();
@@ -85,7 +84,7 @@ static uint32_t *mmu_create_and_fill_pl2(uint32_t *pl1, uint32_t l1_i) {
   return (uint32_t*)(0xfffffc00 & pl1[l1_i]);
 }
 
-static int mmu_create_mapping(uint32_t *mapping, uint32_t addr, size_t size, bool is_privileged) {
+static int mmu_create_mapping(struct mapping *mapping, uint32_t addr, size_t size, bool is_privileged) {
   uint32_t i, *page, *pl2;
   uint32_t l1_i = GET_L1_INDEX(addr), l2_i = GET_L2_INDEX(addr);
 
@@ -102,7 +101,7 @@ static int mmu_create_mapping(uint32_t *mapping, uint32_t addr, size_t size, boo
   return 0;
 }
 
-static int mmu_create_straight_mapping(uint32_t *mapping, uint32_t addr, size_t size) {
+static int mmu_create_straight_mapping(struct mapping *mapping, uint32_t addr, size_t size) {
   uint32_t i, new_addr, *pl2;
   uint32_t l1_i = GET_L1_INDEX(addr), l2_i = GET_L2_INDEX(addr);
 
@@ -119,7 +118,7 @@ static int mmu_create_straight_mapping(uint32_t *mapping, uint32_t addr, size_t 
   return 0;
 }
 
-static void mmu_create_vectors_mapping(uint32_t *mapping) {
+static void mmu_create_vectors_mapping(struct mapping *mapping) {
   uint32_t l1_i = GET_L1_INDEX(VIRT_VECTORS_ADDR);
   uint32_t l2_i = GET_L2_INDEX(VIRT_VECTORS_ADDR);
 
@@ -130,7 +129,7 @@ static void mmu_create_vectors_mapping(uint32_t *mapping) {
   pl2[l2_i] = (uint32_t)page | SL_SHORT_DESCRIPTOR | AP_PRIVILEGED_ACCESS;
 }
 
-static int mmu_create_kernel_mappings(uint32_t *mapping) {
+static int mmu_create_kernel_mappings(struct mapping *mapping) {
   int i;
 
   /* Exception Vectors */
@@ -163,7 +162,7 @@ static struct mapping *mmu_mapping_fetch(pid_t pid) {
   mapping->pid = pid;
 
   mapping->address = mmu_create_pl1();
-  mmu_create_kernel_mappings(mapping->address);
+  mmu_create_kernel_mappings(mapping);
 
   list_add(&mappings, &mapping->next);
   return mapping;
@@ -231,5 +230,5 @@ pid_t mmu_set_ttb(pid_t pid) {
 
 int mmu_alloc(pid_t pid, uint32_t addr, size_t size) {
   struct mapping *mapping = mmu_mapping_fetch(pid);
-  return mmu_create_mapping(mapping->address, addr, size, false);
+  return mmu_create_mapping(mapping, addr, size, false);
 }
