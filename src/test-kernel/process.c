@@ -260,9 +260,7 @@ TEST(test_process_destroy_0) {
   child_pid = process_fork(&parent->context);
   TEST_ASSERT(list_length(&parent->children) == 1);
 
-  pseudo_switch_to(child_pid);
   process_destroy(get_process(child_pid));
-
   TEST_ASSERT(list_length(&parent->children) == 0);
 }
 
@@ -284,7 +282,7 @@ TEST(test_process_destroy_1) {
   pseudo_switch_to(grandchild_pid);
   grandchild = get_process(grandchild_pid);
 
-  pseudo_switch_to(child_pid);
+  pseudo_switch_to(parent_pid);
   process_destroy(child);
 
   TEST_ASSERT(grandchild->parent == parent);
@@ -305,9 +303,7 @@ TEST(test_process_destroy_2) {
   pseudo_switch_to(child_pid);
   child = get_process(child_pid);
 
-  pseudo_switch_to(parent_pid);
   process_destroy(parent);
-
   TEST_ASSERT(child->parent == child);
 }
 

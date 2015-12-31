@@ -335,6 +335,8 @@ static struct process *process_alloc(void) {
 static void process_destroy(struct process *p) {
   struct process *child, *toplevel;
 
+  SYSTEM_BUG_ON(current_process->id == p->id);
+
   list_remove(&p->task);
   list_remove(&p->next);
   list_remove(&p->sibling);
@@ -355,9 +357,7 @@ static void process_destroy(struct process *p) {
     }
   }
 
-  if (p->id != current_process->id) {
-    buddy_free(page_find_by_address(p->kernel_stack));
-  }
+  buddy_free(page_find_by_address(p->kernel_stack));
 
   mmu_destroy(p->id);
   mmu_set_ttb(current_process->id);
@@ -797,8 +797,6 @@ void process_exit(int status) {
   struct file *file;
   struct process *p = current_process;
 
-  current_process = NULL;
-
   p->state = STATE_DEAD;
   p->exit_status = status;
 
@@ -812,7 +810,6 @@ void process_exit(int status) {
   }
 
   if (list_length(&all_processes) == 1) {
-    process_destroy(p);
     system_shutdown();
   }
 
