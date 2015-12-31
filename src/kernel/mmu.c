@@ -67,6 +67,16 @@ static void add_page(struct mapping *mapping, struct page *page) {
   mapping->page_head = page;
 }
 
+static void release_pages(struct mapping *mapping) {
+  struct page *page = mapping->page_head, *next;
+
+  while (page) {
+    next = page->next;
+    buddy_free(page);
+    page = next;
+  }
+}
+
 static uint32_t *mmu_create_pl1(struct mapping *mapping) {
   struct page *page = buddy_alloc(L1_SIZE);
   add_page(mapping, page);
@@ -208,9 +218,9 @@ int mmu_destroy(pid_t pid) {
   }
 
   mmu_set_ttb(0);
-  // TODO: release allocated memory
 
   list_remove(&mapping->next);
+  release_pages(mapping);
   slab_cache_free(mapping_cache, mapping);
 
   return 0;
