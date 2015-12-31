@@ -359,6 +359,9 @@ static void process_destroy(struct process *p) {
     buddy_free(page_find_by_address(p->kernel_stack));
   }
 
+  mmu_destroy(p->id);
+  mmu_set_ttb(current_process->id);
+
   slab_cache_free(process_cache, p);
 }
 
