@@ -72,6 +72,7 @@ static void release_pages(struct mapping *mapping) {
 
   while (page) {
     next = page->next;
+    page->next = NULL;
     buddy_free(page);
     page = next;
   }
