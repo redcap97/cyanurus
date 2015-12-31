@@ -150,12 +150,12 @@ static int mmu_create_kernel_mappings(uint32_t *mapping) {
   return 0;
 }
 
-static void *mmu_mapping_fetch(pid_t pid) {
+static struct mapping *mmu_mapping_fetch(pid_t pid) {
   struct mapping *mapping;
 
   list_foreach(mapping, &mappings, next) {
     if (mapping->pid == pid) {
-      return mapping->address;
+      return mapping;
     }
   }
 
@@ -166,7 +166,7 @@ static void *mmu_mapping_fetch(pid_t pid) {
   mmu_create_kernel_mappings(mapping->address);
 
   list_add(&mappings, &mapping->next);
-  return mapping->address;
+  return mapping;
 }
 
 void mmu_init(void) {
@@ -209,7 +209,8 @@ pid_t mmu_set_ttb(pid_t pid) {
   static pid_t current_pid = 0;
 
   pid_t old_pid;
-  uint32_t addr = (uint32_t)mmu_mapping_fetch(pid);
+  struct mapping *mapping = mmu_mapping_fetch(pid);
+  uint32_t addr = (uint32_t)mapping->address;
 
   mmu_disable();
 
@@ -229,6 +230,6 @@ pid_t mmu_set_ttb(pid_t pid) {
 }
 
 int mmu_alloc(pid_t pid, uint32_t addr, size_t size) {
-  uint32_t *mapping = mmu_mapping_fetch(pid);
-  return mmu_create_mapping(mapping, addr, size, false);
+  struct mapping *mapping = mmu_mapping_fetch(pid);
+  return mmu_create_mapping(mapping->address, addr, size, false);
 }
