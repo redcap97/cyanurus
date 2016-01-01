@@ -50,7 +50,6 @@ limitations under the License.
 #define STACK_END   USER_ADDRESS_END
 #define BRK_END     ((uint8_t*)0x10000000)
 
-#define INITIAL_HEAP_SIZE  0x10000
 #define INITIAL_STACK_SIZE 0x8000
 
 #define ARG_MAX (4 * 1024)
@@ -173,7 +172,7 @@ static void create_segments(struct process *process, const struct elf_executable
 
   segment = &process->segments[SEGMENT_TYPE_HEAP];
   segment->start   = data_end ? data_end : text_end;
-  segment->current = segment->start + INITIAL_HEAP_SIZE;
+  segment->current = segment->start;
   segment->end     = BRK_END;
   segment->flags   = SEGMENT_FLAGS_GROWSUP;
 
@@ -1423,5 +1422,5 @@ struct process *process_waitq_get_process(struct process_waitq *waitq) {
 }
 
 bool process_validate_executable_address(void *address) {
-  return (uint8_t*)address >= USER_ADDRESS_START && (uint8_t*)address < (BRK_END - INITIAL_HEAP_SIZE);
+  return (uint8_t*)address >= USER_ADDRESS_START && (uint8_t*)address < BRK_END;
 }
