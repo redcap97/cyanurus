@@ -18,7 +18,10 @@ limitations under the License.
 #define _CYANURUS_USER_H_
 
 #define USER_ADDRESS_START ((uint8_t*)0x00010000)
-#define USER_ADDRESS_END   ((uint8_t*)0x60000000)
+#define USER_ADDRESS_END ((uint8_t*)0x60000000)
 #define IS_USER_ADDRESSS(address) ((uint8_t*)(address) >= USER_ADDRESS_START && (uint8_t*)(address) < USER_ADDRESS_END)
+
+#define BRK_ADDRESS_END ((uint8_t*)0x10000000)
+#define IS_EXECUTABLE_ADDRESS(address) ((uint8_t*)(address) >= USER_ADDRESS_START && (uint8_t*)(address) < BRK_ADDRESS_END)
 
 #endif
