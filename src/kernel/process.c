@@ -174,7 +174,7 @@ static void create_segments(struct process *process, const struct elf_executable
   segment = &process->segments[SEGMENT_TYPE_HEAP];
   segment->start   = data_end ? data_end : text_end;
   segment->current = segment->start + INITIAL_HEAP_SIZE;
-  segment->end     = segment->start + INITIAL_HEAP_SIZE;
+  segment->end     = BRK_END;
   segment->flags   = SEGMENT_FLAGS_GROWSUP;
 
   segment = &process->segments[SEGMENT_TYPE_STACK];
@@ -888,19 +888,15 @@ uint32_t process_brk(uint32_t address) {
   uint32_t current_brk = (uint32_t)current_process->brk;
   pid_t pid = current_process->id;
 
-  if ((address < current_brk) || (address >= (uint32_t)BRK_END)) {
+  if ((address < current_brk) || (address >= (uint32_t)segment->end)) {
     return current_brk;
   }
 
   current_process->brk = (uint8_t*)address;
 
-  if (segment->end < current_process->brk) {
-    segment->end = (uint8_t*)PAGE_ALIGN((uint32_t)current_process->brk);
-
-    while (segment->current < segment->end) {
-      mmu_alloc(pid, (uint32_t)segment->current, PAGE_SIZE);
-      segment->current += PAGE_SIZE;
-    }
+  while (segment->current < current_process->brk) {
+    mmu_alloc(pid, (uint32_t)segment->current, PAGE_SIZE);
+    segment->current += PAGE_SIZE;
   }
 
   return address;
