@@ -22,6 +22,7 @@ limitations under the License.
 #include "fs/inode.h"
 #include "buddy.h"
 #include "page.h"
+#include "user.h"
 
 #define ELF_MAGIC           "\177ELF"
 #define ELF_CLASS_32BIT     1
@@ -87,7 +88,7 @@ static bool validate_segment(const struct elf_segment *segment) {
     return false;
   }
 
-  if (!process_validate_executable_address(addr) || !process_validate_executable_address(addr + size)) {
+  if (!IS_EXECUTABLE_ADDRESS(addr) || !IS_EXECUTABLE_ADDRESS(addr + size)) {
     return false;
   }
 
