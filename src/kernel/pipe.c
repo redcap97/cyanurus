@@ -134,13 +134,15 @@ void pipe_release(struct pipe *pipe, int flags) {
     case O_RDONLY:
       SYSTEM_BUG_ON(pipe->readers == 0);
       pipe->readers -= 1;
-      while (true) {
-        process = process_waitq_get_process(&pipe->writers_waitq);
-        if (process == NULL) {
-          break;
+      if (!pipe->readers) {
+        while (true) {
+          process = process_waitq_get_process(&pipe->writers_waitq);
+          if (process == NULL) {
+            break;
+          }
+          process_kill(process_get_id(process), SIGPIPE);
+          process_wake(&pipe->writers_waitq);
         }
-        process_kill(process_get_id(process), SIGPIPE);
-        process_wake(&pipe->writers_waitq);
       }
       break;
     case O_WRONLY:
