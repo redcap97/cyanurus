@@ -16,6 +16,15 @@ limitations under the License.
 
 #include "tty.h"
 #include "uart.h"
+#include "gic.h"
+#include "process.h"
+
+static struct process_waitq tty_waitq;
+
+void tty_init(void) {
+  process_waitq_init(&tty_waitq);
+  gic_enable_irq(IRQ_UART0);
+}
 
 ssize_t tty_read(void *data, size_t size) {
   size_t i;
