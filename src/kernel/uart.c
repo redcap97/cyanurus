@@ -35,20 +35,20 @@ limitations under the License.
 #define UARTIMSC_BEIM   (1 << 9)
 #define UARTIMSC_OEIM   (1 << 10)
 
-static int uart_can_recv(void) {
+int uart_can_recv(void) {
   return !(*(UART0 + UARTFR) & UARTFR_RXFE);
 }
 
-static int uart_can_send(void) {
+int uart_can_send(void) {
   return !(*(UART0 + UARTFR) & UARTFR_TXFF);
 }
 
-static int uart_recv(void) {
+int uart_recv(void) {
   while (!uart_can_recv());
   return (*UART0 & 0xff);
 }
 
-static int uart_send(int c) {
+int uart_send(int c) {
   while (!uart_can_send());
   *UART0 = (c & 0xff);
   return 0;

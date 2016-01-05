@@ -19,6 +19,10 @@ limitations under the License.
 
 #include "lib/type.h"
 
+int uart_can_recv(void);
+int uart_can_send(void);
+int uart_recv(void);
+int uart_send(int c);
 int uart_getc(void);
 int uart_putc(int c);
 ssize_t uart_read(void *data, size_t size);
