@@ -27,5 +27,8 @@ int uart_getc(void);
 int uart_putc(int c);
 ssize_t uart_read(void *data, size_t size);
 ssize_t uart_write(const void *data, size_t size);
+void uart_set_read_interrupt(void);
+void uart_set_write_interrupt(void);
+void uart_clear_interrupt(void);
 
 #endif

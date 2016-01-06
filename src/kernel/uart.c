@@ -43,6 +43,18 @@ int uart_can_send(void) {
   return !(*(UART0 + UARTFR) & UARTFR_TXFF);
 }
 
+void uart_set_read_interrupt(void) {
+  *(UART0 + UARTIMSC) = UARTIMSC_RXIM | UARTIMSC_RTIM;
+}
+
+void uart_set_write_interrupt(void) {
+  *(UART0 + UARTIMSC) = UARTIMSC_TXIM;
+}
+
+void uart_clear_interrupt(void) {
+  *(UART0 + UARTIMSC) = 0;
+}
+
 int uart_recv(void) {
   while (!uart_can_recv());
   return (*UART0 & 0xff);
