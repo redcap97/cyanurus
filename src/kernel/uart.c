@@ -15,6 +15,8 @@ limitations under the License.
 */
 
 #include "uart.h"
+#include "logger.h"
+#include "system.h"
 
 #define UART0 ((volatile uint32_t*)0x10009000)
 
@@ -43,16 +45,36 @@ int uart_can_send(void) {
   return !(*(UART0 + UARTFR) & UARTFR_TXFF);
 }
 
-void uart_set_read_interrupt(void) {
-  *(UART0 + UARTIMSC) = UARTIMSC_RXIM | UARTIMSC_RTIM;
+void uart_set_interrupt(int flags) {
+  switch(flags & O_ACCMODE) {
+    case O_RDONLY:
+      *(UART0 + UARTIMSC) |= (UARTIMSC_RXIM | UARTIMSC_RTIM);
+      break;
+
+    case O_WRONLY:
+      *(UART0 + UARTIMSC) |= UARTIMSC_TXIM;
+      break;
+
+    default:
+      logger_fatal("unknown flags: 0x%08x", flags);
+      system_halt();
+  }
 }
 
-void uart_set_write_interrupt(void) {
-  *(UART0 + UARTIMSC) = UARTIMSC_TXIM;
-}
+void uart_clear_interrupt(int flags) {
+  switch(flags & O_ACCMODE) {
+    case O_RDONLY:
+      *(UART0 + UARTIMSC) &= ~(UARTIMSC_RXIM | UARTIMSC_RTIM);
+      break;
 
-void uart_clear_interrupt(void) {
-  *(UART0 + UARTIMSC) = 0;
+    case O_WRONLY:
+      *(UART0 + UARTIMSC) &= ~UARTIMSC_TXIM;
+      break;
+
+    default:
+      logger_fatal("unknown flags: 0x%08x", flags);
+      system_halt();
+  }
 }
 
 int uart_recv(void) {

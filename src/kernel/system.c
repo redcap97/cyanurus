@@ -75,6 +75,10 @@ void system_irq_handler(void) {
       }
       break;
 
+    case IRQ_UART0:
+      tty_resume();
+      break;
+
     default:
       logger_warn("unknown irq: %d", irq);
       break;
