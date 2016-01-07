@@ -19,6 +19,8 @@ limitations under the License.
 
 #include "lib/type.h"
 
+void tty_init(void);
+void tty_resume(void);
 ssize_t tty_read(void *data, size_t size);
 ssize_t tty_write(const void *data, size_t size);
 

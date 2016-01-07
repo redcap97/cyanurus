@@ -26,6 +26,7 @@ limitations under the License.
 #include "gic.h"
 #include "pipe.h"
 #include "config.h"
+#include "tty.h"
 #include "lib/string.h"
 
 #define SCTLR_V (1 << 13)
@@ -56,6 +57,7 @@ void system_init(void) {
   gic_init();
   page_init();
   fs_init();
+  tty_init();
   mmu_init();
   mmu_enable();
   timer_enable();
@@ -71,6 +73,10 @@ void system_irq_handler(void) {
       if (timer_is_masked()) {
         timer_clear_interrupt();
       }
+      break;
+
+    case IRQ_UART0:
+      tty_resume();
       break;
 
     default:
