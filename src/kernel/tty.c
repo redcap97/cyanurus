@@ -45,6 +45,11 @@ static int tty_putc(int c) {
   }
 }
 
+static void wake_next(void) {
+  process_wake(&tty_read_waitq);
+  process_wake(&tty_write_waitq);
+}
+
 void tty_init(void) {
   gic_enable_irq(IRQ_UART0);
 
@@ -80,7 +85,7 @@ ssize_t tty_read(void *data, size_t size) {
   }
 
 done:
-  process_wake(&tty_read_waitq);
+  wake_next();
   return size;
 }
 
@@ -92,6 +97,6 @@ ssize_t tty_write(const void *data, size_t size) {
     tty_putc(buf[i]);
   }
 
-  process_wake(&tty_write_waitq);
+  wake_next();
   return size;
 }
