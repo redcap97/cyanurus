@@ -81,6 +81,5 @@ int process_pipe(int *pipefd);
 int process_pipe2(int *pipefd, int flags);
 
 void process_waitq_init(struct process_waitq *waitq);
-struct process *process_waitq_get_process(struct process_waitq *waitq);
 
 #endif
