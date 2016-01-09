@@ -21,7 +21,7 @@ limitations under the License.
 #include <signal.h>
 
 void trap_sigpipe(int sig) {
-  (void)sig;
+  TEST_ASSERT(sig == SIGPIPE);
   TEST_SUCCEED();
 }
 
