@@ -148,7 +148,9 @@ void pipe_release(struct pipe *pipe, int flags) {
     case O_WRONLY:
       SYSTEM_BUG_ON(pipe->writers == 0);
       pipe->writers -= 1;
-      while (process_wake(&pipe->readers_waitq));
+      if (!pipe->writers) {
+        while (process_wake(&pipe->readers_waitq));
+      }
       break;
     default:
       logger_fatal("unknown flags: 0x%08x", flags);
