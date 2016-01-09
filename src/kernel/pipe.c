@@ -87,6 +87,7 @@ ssize_t pipe_write(struct pipe *pipe, const void *data, size_t size) {
 
   while (true) {
     if (!pipe->readers) {
+      process_kill(process_get_id(current_process), SIGPIPE);
       return -EPIPE;
     }
 
@@ -128,27 +129,21 @@ void pipe_countup(struct pipe *pipe, int flags) {
 
 void pipe_release(struct pipe *pipe, int flags) {
   struct page *page;
-  struct process *process;
 
   switch(flags & O_ACCMODE) {
     case O_RDONLY:
       SYSTEM_BUG_ON(pipe->readers == 0);
       pipe->readers -= 1;
       if (!pipe->readers) {
-        while (true) {
-          process = process_waitq_get_process(&pipe->writers_waitq);
-          if (process == NULL) {
-            break;
-          }
-          process_kill(process_get_id(process), SIGPIPE);
-          process_wake(&pipe->writers_waitq);
-        }
+        while (process_wake(&pipe->writers_waitq));
       }
       break;
     case O_WRONLY:
       SYSTEM_BUG_ON(pipe->writers == 0);
       pipe->writers -= 1;
-      while (process_wake(&pipe->readers_waitq));
+      if (!pipe->writers) {
+        while (process_wake(&pipe->readers_waitq));
+      }
       break;
     default:
       logger_fatal("unknown flags: 0x%08x", flags);
