@@ -21,11 +21,26 @@ limitations under the License.
 #include <signal.h>
 #include <errno.h>
 
+void trap_sigpipe(int sig) {
+  TEST_ASSERT(sig == SIGPIPE);
+}
+
+void set_signal_handler(void) {
+  struct sigaction sa;
+  memset(&sa, 0, sizeof(struct sigaction));
+
+  sigemptyset(&sa.sa_mask);
+  sa.sa_handler = trap_sigpipe;
+  TEST_ASSERT(sigaction(SIGPIPE, &sa, NULL) == 0);
+}
+
 int main(void) {
   int pipefd[2];
   char data[1024 * 8];
 
   TEST_START();
+
+  set_signal_handler();
   TEST_ASSERT(pipe(pipefd) == 0);
 
   close(pipefd[0]);
