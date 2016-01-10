@@ -34,4 +34,9 @@ SECTIONS
   . = . + 0x2000;
   . = ALIGN(8);
   irq_stack = .;
+
+  /* 8KB */
+  . = . + 0x2000;
+  . = ALIGN(8);
+  data_abort_stack = .;
 }

@@ -34,7 +34,7 @@ __reset_handler:          .long reset_handler
 __undef_handler:          .long system_halt
 __svc_handler:            .long svc_handler
 __prefetch_abort_handler: .long system_halt
-__data_abort_handler:     .long system_halt
+__data_abort_handler:     .long data_abort_handler
 __irq_handler:            .long irq_handler
 __fiq_handler:            .long system_halt
 vectors_end:
@@ -42,9 +42,10 @@ vectors_end:
 __current_process: .long current_process
 __svc_stack: .long svc_stack
 __irq_stack: .long irq_stack
+__data_abort_stack: .long data_abort_stack
 
 reset_handler:
-        LDR   sp, __svc_stack
+        LDR   sp, __data_abort_stack
         BL    kernel_main
         B     .
 
@@ -102,4 +103,10 @@ svc_handler:
         MOV   sp, r0
 
         BL    system_svc_handler
+        B     .
+
+        .global data_abort_handler
+data_abort_handler:
+        LDR   sp, __irq_stack
+        BL    system_data_abort_handler
         B     .
