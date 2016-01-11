@@ -14,6 +14,33 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+        .macro push_process_context
+                STMFD sp!, {lr}
+
+                STMFD sp, {r0-lr}^
+                SUB   sp, sp, #60
+
+                MRS   r1, spsr
+                STMFD sp!, {r1}
+        .endm
+
+        .macro switch_kernel_stack
+                @ skip if current_process is NULL
+                LDR   r0, __current_process
+                LDR   r0, [r0]
+                CMP   r0, #0
+                BEQ   1f
+
+                @ store context to process
+                MOV   r0, sp
+                BL    process_set_context
+
+                @ set kernel stack
+                BL    process_get_kernel_stack
+                MOV   sp, r0
+        1:
+        .endm
+
         .text
         .code 32
 
@@ -53,31 +80,10 @@ reset_handler:
 irq_handler:
         LDR   sp, __irq_stack
 
-        @ create context
         SUB   lr, lr, #4
-        STMFD sp!, {lr}
+        push_process_context
+        switch_kernel_stack
 
-        STMFD sp, {r0-lr}^
-        SUB   sp, sp, #60
-
-        MRS   r1, spsr
-        STMFD sp!, {r1}
-
-        @ skip if current_process is NULL
-        LDR   r0, __current_process
-        LDR   r0, [r0]
-        CMP   r0, #0
-        BEQ   1f
-
-        @ store context to process
-        MOV   r0, sp
-        BL    process_set_context
-
-        @ set kernel stack
-        BL    process_get_kernel_stack
-        MOV   sp, r0
-
-1:
         BL    system_irq_handler
         B     .
 
@@ -85,22 +91,8 @@ irq_handler:
 svc_handler:
         LDR   sp, __svc_stack
 
-        @ create context
-        STMFD sp!, {lr}
-
-        STMFD sp, {r0-lr}^
-        SUB   sp, sp, #60
-
-        MRS   r1, spsr
-        STMFD sp!, {r1}
-
-        @ store context to process
-        MOV   r0, sp
-        BL    process_set_context
-
-        @ set kernel stack
-        BL    process_get_kernel_stack
-        MOV   sp, r0
+        push_process_context
+        switch_kernel_stack
 
         BL    system_svc_handler
         B     .
@@ -109,30 +101,9 @@ svc_handler:
 data_abort_handler:
         LDR   sp, __data_abort_stack
 
-        @ create context
         SUB   lr, lr, #8
-        STMFD sp!, {lr}
+        push_process_context
+        switch_kernel_stack
 
-        STMFD sp, {r0-lr}^
-        SUB   sp, sp, #60
-
-        MRS   r1, spsr
-        STMFD sp!, {r1}
-
-        @ skip if current_process is NULL
-        LDR   r0, __current_process
-        LDR   r0, [r0]
-        CMP   r0, #0
-        BEQ   1f
-
-        @ store context to process
-        MOV   r0, sp
-        BL    process_set_context
-
-        @ set kernel stack
-        BL    process_get_kernel_stack
-        MOV   sp, r0
-
-1:
         BL    system_data_abort_handler
         B     .
