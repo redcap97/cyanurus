@@ -137,23 +137,31 @@ void system_data_abort_handler(void) {
     : [dfar] "=r"(dfar)
   );
 
-  if (!current_process || !IS_USER_MODE(process_get_context(current_process))) {
-    logger_debug("%s (address: 0x%08x)", data_abort_source(dfsr), dfar);
-    system_halt();
+  if (!current_process) {
+    goto fail;
+  }
+
+  if (!IS_USER_MODE(process_get_context(current_process))) {
+    goto fail;
   }
 
   switch (DFSR_FS(dfsr)) {
     case 0x05: // Translation fault (First level)
     case 0x07: // Translation fault (Second level)
       if (process_extend_segment((void*)dfar)) {
-        break;
+        goto done;
       }
-
-    default:
-      process_kill(process_get_id(current_process), SIGSEGV);
+      break;
   }
 
+  process_kill(process_get_id(current_process), SIGSEGV);
+
+done:
   process_switch();
+
+fail:
+  logger_debug("%s (address: 0x%08x)", data_abort_source(dfsr), dfar);
+  system_halt();
 }
 
 noreturn void system_halt(void) {
