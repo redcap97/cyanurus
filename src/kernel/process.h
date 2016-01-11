@@ -24,6 +24,8 @@ limitations under the License.
 #define WAIT_SIGNAL(signal) ((signal) & 0x7f)
 #define WAIT_CORE_DUMP(coredump) (((coredump) ? 1 : 0) << 7)
 
+#define IS_USER_MODE(context) ((context)->cpsr & 0x10)
+
 struct process_context {
   uint32_t cpsr;
   uint32_t r[13];

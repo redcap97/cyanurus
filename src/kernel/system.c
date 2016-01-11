@@ -137,7 +137,7 @@ void system_data_abort_handler(void) {
     : [dfar] "=r"(dfar)
   );
 
-  if (!current_process) {
+  if (!current_process || !IS_USER_MODE(process_get_context(current_process))) {
     logger_debug("%s (address: 0x%08x)", data_abort_source(dfsr), dfar);
     system_halt();
   }
