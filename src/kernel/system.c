@@ -155,7 +155,6 @@ void system_data_abort_handler(void) {
       }
       break;
   }
-
   process_kill(process_get_id(current_process), SIGSEGV);
 
 done:
