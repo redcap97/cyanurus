@@ -26,16 +26,18 @@ limitations under the License.
 
         .macro switch_kernel_stack
                 @ skip if current_process is NULL
-                LDR   r0, __current_process
-                LDR   r0, [r0]
-                CMP   r0, #0
+                LDR   r4, __current_process
+                LDR   r4, [r4]
+                CMP   r4, #0
                 BEQ   1f
 
                 @ store context to process
-                MOV   r0, sp
+                MOV   r0, r4
+                MOV   r1, sp
                 BL    process_set_context
 
                 @ set kernel stack
+                MOV   r0, r4
                 BL    process_get_kernel_stack
                 MOV   sp, r0
         1:

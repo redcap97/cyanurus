@@ -519,13 +519,6 @@ static uint32_t pop_from_stack(uint32_t sp, void *data, size_t size) {
   return ALIGN(sp + size, 3);
 }
 
-static void assert_has_current_process(const char *func) {
-  if (!current_process) {
-    logger_fatal("current process not found @%s()", func);
-    system_halt();
-  }
-}
-
 void process_init(void) {
   current_process = NULL;
 
@@ -562,6 +555,14 @@ pid_t process_get_id(struct process* process) {
 
 struct process_context *process_get_context(struct process *process) {
   return &process->context;
+}
+
+void process_set_context(struct process *process, const struct process_context *context) {
+  memcpy(&process->context, context, sizeof(struct process_context));
+}
+
+void *process_get_kernel_stack(struct process *process) {
+  return process->kernel_stack + KERNEL_STACK_SIZE;
 }
 
 int process_create(const char *path) {
@@ -729,16 +730,6 @@ int process_wake(struct process_waitq *waitq) {
   }
 
   return 0;
-}
-
-void process_set_context(const struct process_context *context) {
-  assert_has_current_process(__func__);
-  memcpy(&current_process->context, context, sizeof(struct process_context));
-}
-
-uint8_t *process_get_kernel_stack(void) {
-  assert_has_current_process(__func__);
-  return current_process->kernel_stack + KERNEL_STACK_SIZE;
 }
 
 void process_switch(void) {
