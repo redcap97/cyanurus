@@ -142,7 +142,17 @@ void system_data_abort_handler(void) {
     system_halt();
   }
 
-  process_kill(process_get_id(current_process), SIGSEGV);
+  switch (DFSR_FS(dfsr)) {
+    case 0x05: // Translation fault (First level)
+    case 0x07: // Translation fault (Second level)
+      if (process_extend_segment((void*)dfar)) {
+        break;
+      }
+
+    default:
+      process_kill(process_get_id(current_process), SIGSEGV);
+  }
+
   process_switch();
 }
 

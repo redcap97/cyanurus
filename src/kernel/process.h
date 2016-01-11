@@ -83,6 +83,7 @@ int process_dup3(int oldfd, int newfd, int flags);
 int process_pipe(int *pipefd);
 int process_pipe2(int *pipefd, int flags);
 
+bool process_extend_segment(uint8_t *address);
 void process_waitq_init(struct process_waitq *waitq);
 
 #endif

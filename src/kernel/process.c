@@ -49,7 +49,7 @@ limitations under the License.
 #define STACK_START ((uint8_t*)0x58000000)
 #define STACK_END   USER_ADDRESS_END
 
-#define INITIAL_STACK_SIZE 0x8000
+#define INITIAL_STACK_SIZE 0x1000
 
 #define ARG_MAX (4 * 1024)
 
@@ -180,6 +180,21 @@ static void create_segments(struct process *process, const struct elf_executable
   segment->current = STACK_END - INITIAL_STACK_SIZE;
   segment->end     = STACK_END;
   segment->flags   = SEGMENT_FLAGS_GROWSDOWN;
+}
+
+static struct segment *find_segment(uint8_t *address) {
+  int i;
+  struct segment *segment;
+
+  for (i = 0; i < SEGMENT_TYPE_SIZE; ++i) {
+    segment = &current_process->segments[i];
+
+    if (address >= segment->start && address < segment->end) {
+      return segment;
+    }
+  }
+
+  return NULL;
 }
 
 static void alloc_segments(const struct process *process) {
@@ -1400,6 +1415,50 @@ int process_pipe2(int *pipefd, int flags) {
   pipefd[1] = wfd;
 
   return 0;
+}
+
+bool process_extend_segment(uint8_t *address) {
+  uint8_t *align;
+
+  pid_t pid = current_process->id;
+  struct segment *segment = find_segment(address);
+
+  if (!segment) {
+    return false;
+  }
+
+  if (segment->flags & SEGMENT_FLAGS_GROWSUP) {
+    align = (void*)PAGE_ALIGN((uint32_t)address);
+
+    if (address < segment->current || address >= segment->end) {
+      return false;
+    }
+
+    while (segment->current < align) {
+      mmu_alloc(pid, (uint32_t)segment->current, PAGE_SIZE);
+      segment->current += PAGE_SIZE;
+    }
+
+    return true;
+  }
+
+  if (segment->flags & SEGMENT_FLAGS_GROWSDOWN) {
+    align = (void*)((uint32_t)address & ~(PAGE_SIZE - 1));
+
+    if (address < segment->start && address >= segment->current) {
+      return false;
+    }
+
+    while (segment->current > align) {
+      segment->current -= PAGE_SIZE;
+      mmu_alloc(pid, (uint32_t)segment->current, PAGE_SIZE);
+    }
+
+    return true;
+  }
+
+  logger_fatal("bad segment flags: 0x%x", segment->flags);
+  system_halt();
 }
 
 void process_waitq_init(struct process_waitq *waitq) {
