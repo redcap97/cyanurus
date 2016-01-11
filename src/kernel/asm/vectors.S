@@ -108,5 +108,31 @@ svc_handler:
         .global data_abort_handler
 data_abort_handler:
         LDR   sp, __data_abort_stack
+
+        @ create context
+        SUB   lr, lr, #8
+        STMFD sp!, {lr}
+
+        STMFD sp, {r0-lr}^
+        SUB   sp, sp, #60
+
+        MRS   r1, spsr
+        STMFD sp!, {r1}
+
+        @ skip if current_process is NULL
+        LDR   r0, __current_process
+        LDR   r0, [r0]
+        CMP   r0, #0
+        BEQ   1f
+
+        @ store context to process
+        MOV   r0, sp
+        BL    process_set_context
+
+        @ set kernel stack
+        BL    process_get_kernel_stack
+        MOV   sp, r0
+
+1:
         BL    system_data_abort_handler
         B     .

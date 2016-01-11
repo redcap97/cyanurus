@@ -137,8 +137,13 @@ void system_data_abort_handler(void) {
     : [dfar] "=r"(dfar)
   );
 
-  logger_debug("%s (address: 0x%08x)", data_abort_source(dfsr), dfar);
-  system_halt();
+  if (!current_process) {
+    logger_debug("%s (address: 0x%08x)", data_abort_source(dfsr), dfar);
+    system_halt();
+  }
+
+  process_kill(process_get_id(current_process), SIGSEGV);
+  process_switch();
 }
 
 noreturn void system_halt(void) {
