@@ -49,9 +49,8 @@ limitations under the License.
 #define STACK_START ((uint8_t*)0x58000000)
 #define STACK_END   USER_ADDRESS_END
 
-#define INITIAL_STACK_SIZE 0x1000
-
 #define ARG_MAX (4 * 1024)
+#define INITIAL_STACK_SIZE ARG_MAX
 
 #define ALIGN(p, n) (((p) + ((1 << (n)) - 1)) & ~((1 << (n)) - 1))
 #define PAGE_ALIGN(addr) (((addr) + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1))
