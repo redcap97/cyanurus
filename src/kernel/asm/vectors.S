@@ -45,7 +45,7 @@ __irq_stack: .long irq_stack
 __data_abort_stack: .long data_abort_stack
 
 reset_handler:
-        LDR   sp, __data_abort_stack
+        LDR   sp, __svc_stack
         BL    kernel_main
         B     .
 
@@ -107,6 +107,6 @@ svc_handler:
 
         .global data_abort_handler
 data_abort_handler:
-        LDR   sp, __irq_stack
+        LDR   sp, __data_abort_stack
         BL    system_data_abort_handler
         B     .
