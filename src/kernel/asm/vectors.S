@@ -72,7 +72,6 @@ __current_process: .long current_process
 __svc_stack: .long svc_stack
 __irq_stack: .long irq_stack
 __data_abort_stack: .long data_abort_stack
-__halt_handler: .long halt_handler
 
 reset_handler:
         LDR   sp, __svc_stack
