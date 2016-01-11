@@ -60,22 +60,28 @@ vectors_start:
         LDR   pc, __fiq_handler
 
 __reset_handler:          .long reset_handler
-__undef_handler:          .long system_halt
+__undef_handler:          .long halt_handler
 __svc_handler:            .long svc_handler
-__prefetch_abort_handler: .long system_halt
+__prefetch_abort_handler: .long halt_handler
 __data_abort_handler:     .long data_abort_handler
 __irq_handler:            .long irq_handler
-__fiq_handler:            .long system_halt
+__fiq_handler:            .long halt_handler
 vectors_end:
 
 __current_process: .long current_process
 __svc_stack: .long svc_stack
 __irq_stack: .long irq_stack
 __data_abort_stack: .long data_abort_stack
+__halt_handler: .long halt_handler
 
 reset_handler:
         LDR   sp, __svc_stack
         BL    kernel_main
+        B     .
+
+halt_handler:
+        LDR   sp, __svc_stack
+        BL    system_halt
         B     .
 
         .global irq_handler
