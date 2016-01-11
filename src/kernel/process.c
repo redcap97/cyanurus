@@ -560,6 +560,10 @@ pid_t process_get_id(struct process* process) {
   return process->id;
 }
 
+struct process_context *process_get_context(struct process *process) {
+  return &process->context;
+}
+
 int process_create(const char *path) {
   pid_t old_pid;
   struct argv_envp avep;
@@ -725,11 +729,6 @@ int process_wake(struct process_waitq *waitq) {
   }
 
   return 0;
-}
-
-struct process_context *process_get_context(void) {
-  assert_has_current_process(__func__);
-  return &current_process->context;
 }
 
 void process_set_context(const struct process_context *context) {

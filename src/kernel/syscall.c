@@ -508,7 +508,7 @@ void syscall_pass(struct process_context *context, uint32_t ret) {
 }
 
 void syscall_handler(void) {
-  struct process_context *context = process_get_context();
+  struct process_context *context = process_get_context(current_process);
   uint32_t number = context->r[7];
 
   switch(number) {

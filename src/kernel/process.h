@@ -39,14 +39,15 @@ struct process_waitq {
 extern struct process *current_process;
 
 void process_init(void);
+
 pid_t process_get_id(struct process* process);
+struct process_context *process_get_context(struct process* process);
 
 int process_create(const char *path);
 int process_exec(const char *path, char *const argv[], char *const envp[]);
 pid_t process_fork(const struct process_context *context);
 void process_sleep(struct process_waitq *waitq);
 int process_wake(struct process_waitq *waitq);
-struct process_context *process_get_context(void);
 void process_set_context(const struct process_context *context);
 uint8_t *process_get_kernel_stack(void);
 void process_switch(void);
