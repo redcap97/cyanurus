@@ -124,6 +124,7 @@ void system_svc_handler(void) {
 
 void system_data_abort_handler(void) {
   uint32_t dfsr, dfar;
+  struct process_context *context;
 
   /* DFSR */
   __asm__(
@@ -141,7 +142,8 @@ void system_data_abort_handler(void) {
     goto fail;
   }
 
-  if (!IS_USER_MODE(process_get_context(current_process))) {
+  context = process_get_context(current_process);
+  if (!IS_USER_MODE(context)) {
     goto fail;
   }
 
