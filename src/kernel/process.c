@@ -888,14 +888,21 @@ pid_t process_getppid(void) {
 uint32_t process_brk(uint32_t address) {
   struct segment *segment = &current_process->segments[SEGMENT_TYPE_HEAP];
   uint32_t current_brk = (uint32_t)current_process->brk;
+  pid_t pid = current_process->id;
 
   if ((address < current_brk) || (address >= (uint32_t)BRK_ADDRESS_END)) {
     return current_brk;
   }
 
   current_process->brk = (uint8_t*)address;
+
   if (segment->end < current_process->brk) {
     segment->end = (uint8_t*)PAGE_ALIGN((uint32_t)current_process->brk);
+
+    while (segment->current < segment->end) {
+      mmu_alloc(pid, (uint32_t)segment->current, PAGE_SIZE);
+      segment->current += PAGE_SIZE;
+    }
   }
 
   return address;
@@ -1419,21 +1426,6 @@ bool process_extend_segment(uint8_t *address) {
     return false;
   }
 
-  if (segment->flags & SEGMENT_FLAGS_GROWSUP) {
-    align = (void*)PAGE_ALIGN((uint32_t)address);
-
-    if (address < segment->current || address >= segment->end) {
-      return false;
-    }
-
-    while (segment->current < align) {
-      mmu_alloc(pid, (uint32_t)segment->current, PAGE_SIZE);
-      segment->current += PAGE_SIZE;
-    }
-
-    return true;
-  }
-
   if (segment->flags & SEGMENT_FLAGS_GROWSDOWN) {
     align = (void*)((uint32_t)address & ~(PAGE_SIZE - 1));
 
@@ -1449,8 +1441,7 @@ bool process_extend_segment(uint8_t *address) {
     return true;
   }
 
-  logger_fatal("bad segment flags: 0x%x", segment->flags);
-  system_halt();
+  return false;
 }
 
 void process_waitq_init(struct process_waitq *waitq) {
