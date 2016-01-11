@@ -83,7 +83,6 @@ halt_handler:
         BL    system_halt
         B     .
 
-        .global irq_handler
 irq_handler:
         LDR   sp, __irq_stack
 
@@ -94,7 +93,6 @@ irq_handler:
         BL    system_irq_handler
         B     .
 
-        .global svc_handler
 svc_handler:
         LDR   sp, __svc_stack
 
@@ -104,7 +102,6 @@ svc_handler:
         BL    system_svc_handler
         B     .
 
-        .global data_abort_handler
 data_abort_handler:
         LDR   sp, __data_abort_stack
 
