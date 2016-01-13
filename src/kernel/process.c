@@ -1418,7 +1418,7 @@ int process_pipe2(int *pipefd, int flags) {
 }
 
 bool process_demand_page(uint8_t *address) {
-  uint8_t *align;
+  uint8_t *base;
 
   pid_t pid = current_process->id;
   struct segment *segment = find_segment(address);
@@ -1428,13 +1428,13 @@ bool process_demand_page(uint8_t *address) {
   }
 
   if (segment->flags & SEGMENT_FLAGS_GROWSDOWN) {
-    align = (void*)PAGE_MASK((uint32_t)address);
+    base = (void*)PAGE_MASK((uint32_t)address);
 
     if (address < segment->start && address >= segment->current) {
       return false;
     }
 
-    while (segment->current > align) {
+    while (segment->current > base) {
       segment->current -= PAGE_SIZE;
       mmu_alloc(pid, (uint32_t)segment->current, PAGE_SIZE);
     }
