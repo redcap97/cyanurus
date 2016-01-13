@@ -1416,7 +1416,7 @@ int process_pipe2(int *pipefd, int flags) {
   return 0;
 }
 
-bool process_extend_segment(uint8_t *address) {
+bool process_demand_page(uint8_t *address) {
   uint8_t *align;
 
   pid_t pid = current_process->id;

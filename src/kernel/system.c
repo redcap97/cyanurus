@@ -150,7 +150,7 @@ void system_data_abort_handler(void) {
   switch (DFSR_FS(dfsr)) {
     case 0x05: // Translation fault (First level)
     case 0x07: // Translation fault (Second level)
-      if (process_extend_segment((void*)dfar)) {
+      if (process_demand_page((void*)dfar)) {
         goto done;
       }
       break;
