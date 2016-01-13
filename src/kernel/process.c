@@ -54,6 +54,7 @@ limitations under the License.
 
 #define ALIGN(p, n) (((p) + ((1 << (n)) - 1)) & ~((1 << (n)) - 1))
 #define PAGE_ALIGN(addr) (((addr) + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1))
+#define PAGE_MASK(addr) ((addr) & ~(PAGE_SIZE - 1))
 
 #define FILE_STATUS_FLAGS (O_APPEND|O_ASYNC|O_DIRECT|O_DSYNC|O_NOATIME|O_NONBLOCK|O_SYNC)
 #define PIPE2_FLAGS (O_CLOEXEC|O_DIRECT|O_NONBLOCK)
@@ -153,7 +154,7 @@ static void create_segments(struct process *process, const struct elf_executable
   uint8_t *text_start = (uint8_t*)executable->text.addr;
   uint8_t *text_end   = (uint8_t*)PAGE_ALIGN(executable->text.addr + executable->text.memory_size);
 
-  uint8_t *data_start = (uint8_t*)(executable->data.addr & ~(PAGE_SIZE - 1));
+  uint8_t *data_start = (uint8_t*)PAGE_MASK(executable->data.addr);
   uint8_t *data_end   = (uint8_t*)PAGE_ALIGN(executable->data.addr + executable->data.memory_size);
 
   segment = &process->segments[SEGMENT_TYPE_TEXT];
@@ -1427,7 +1428,7 @@ bool process_demand_page(uint8_t *address) {
   }
 
   if (segment->flags & SEGMENT_FLAGS_GROWSDOWN) {
-    align = (void*)((uint32_t)address & ~(PAGE_SIZE - 1));
+    align = (void*)PAGE_MASK((uint32_t)address);
 
     if (address < segment->start && address >= segment->current) {
       return false;
