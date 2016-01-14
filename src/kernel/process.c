@@ -49,12 +49,12 @@ limitations under the License.
 #define STACK_START ((uint8_t*)0x58000000)
 #define STACK_END   USER_ADDRESS_END
 
-#define INITIAL_STACK_SIZE 0x8000
-
 #define ARG_MAX (4 * 1024)
+#define INITIAL_STACK_SIZE ARG_MAX
 
 #define ALIGN(p, n) (((p) + ((1 << (n)) - 1)) & ~((1 << (n)) - 1))
 #define PAGE_ALIGN(addr) (((addr) + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1))
+#define PAGE_MASK(addr) ((addr) & ~(PAGE_SIZE - 1))
 
 #define FILE_STATUS_FLAGS (O_APPEND|O_ASYNC|O_DIRECT|O_DSYNC|O_NOATIME|O_NONBLOCK|O_SYNC)
 #define PIPE2_FLAGS (O_CLOEXEC|O_DIRECT|O_NONBLOCK)
@@ -154,7 +154,7 @@ static void create_segments(struct process *process, const struct elf_executable
   uint8_t *text_start = (uint8_t*)executable->text.addr;
   uint8_t *text_end   = (uint8_t*)PAGE_ALIGN(executable->text.addr + executable->text.memory_size);
 
-  uint8_t *data_start = (uint8_t*)(executable->data.addr & ~(PAGE_SIZE - 1));
+  uint8_t *data_start = (uint8_t*)PAGE_MASK(executable->data.addr);
   uint8_t *data_end   = (uint8_t*)PAGE_ALIGN(executable->data.addr + executable->data.memory_size);
 
   segment = &process->segments[SEGMENT_TYPE_TEXT];
@@ -180,6 +180,21 @@ static void create_segments(struct process *process, const struct elf_executable
   segment->current = STACK_END - INITIAL_STACK_SIZE;
   segment->end     = STACK_END;
   segment->flags   = SEGMENT_FLAGS_GROWSDOWN;
+}
+
+static struct segment *find_segment(uint8_t *address) {
+  int i;
+  struct segment *segment;
+
+  for (i = 0; i < SEGMENT_TYPE_SIZE; ++i) {
+    segment = &current_process->segments[i];
+
+    if (address >= segment->start && address < segment->end) {
+      return segment;
+    }
+  }
+
+  return NULL;
 }
 
 static void alloc_segments(const struct process *process) {
@@ -519,13 +534,6 @@ static uint32_t pop_from_stack(uint32_t sp, void *data, size_t size) {
   return ALIGN(sp + size, 3);
 }
 
-static void assert_has_current_process(const char *func) {
-  if (!current_process) {
-    logger_fatal("current process not found @%s()", func);
-    system_halt();
-  }
-}
-
 void process_init(void) {
   current_process = NULL;
 
@@ -558,6 +566,18 @@ void process_init(void) {
 
 pid_t process_get_id(struct process* process) {
   return process->id;
+}
+
+struct process_context *process_get_context(struct process *process) {
+  return &process->context;
+}
+
+void process_set_context(struct process *process, const struct process_context *context) {
+  memcpy(&process->context, context, sizeof(struct process_context));
+}
+
+void *process_get_kernel_stack(struct process *process) {
+  return process->kernel_stack + KERNEL_STACK_SIZE;
 }
 
 int process_create(const char *path) {
@@ -725,21 +745,6 @@ int process_wake(struct process_waitq *waitq) {
   }
 
   return 0;
-}
-
-struct process_context *process_get_context(void) {
-  assert_has_current_process(__func__);
-  return &current_process->context;
-}
-
-void process_set_context(const struct process_context *context) {
-  assert_has_current_process(__func__);
-  memcpy(&current_process->context, context, sizeof(struct process_context));
-}
-
-uint8_t *process_get_kernel_stack(void) {
-  assert_has_current_process(__func__);
-  return current_process->kernel_stack + KERNEL_STACK_SIZE;
 }
 
 void process_switch(void) {
@@ -1410,6 +1415,34 @@ int process_pipe2(int *pipefd, int flags) {
   pipefd[1] = wfd;
 
   return 0;
+}
+
+bool process_demand_page(uint8_t *address) {
+  uint8_t *base;
+
+  pid_t pid = current_process->id;
+  struct segment *segment = find_segment(address);
+
+  if (!segment) {
+    return false;
+  }
+
+  if (segment->flags & SEGMENT_FLAGS_GROWSDOWN) {
+    base = (void*)PAGE_MASK((uint32_t)address);
+
+    if (address < segment->start && address >= segment->current) {
+      return false;
+    }
+
+    while (segment->current > base) {
+      segment->current -= PAGE_SIZE;
+      mmu_alloc(pid, (uint32_t)segment->current, PAGE_SIZE);
+    }
+
+    return true;
+  }
+
+  return false;
 }
 
 void process_waitq_init(struct process_waitq *waitq) {

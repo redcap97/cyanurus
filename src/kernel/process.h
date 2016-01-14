@@ -24,6 +24,8 @@ limitations under the License.
 #define WAIT_SIGNAL(signal) ((signal) & 0x7f)
 #define WAIT_CORE_DUMP(coredump) (((coredump) ? 1 : 0) << 7)
 
+#define IS_USER_MODE(context) (((context)->cpsr & ((1 << 5) - 1)) == 0x10)
+
 struct process_context {
   uint32_t cpsr;
   uint32_t r[13];
@@ -39,16 +41,17 @@ struct process_waitq {
 extern struct process *current_process;
 
 void process_init(void);
+
 pid_t process_get_id(struct process* process);
+struct process_context *process_get_context(struct process* process);
+void process_set_context(struct process *process, const struct process_context *context);
+void *process_get_kernel_stack(struct process *process);
 
 int process_create(const char *path);
 int process_exec(const char *path, char *const argv[], char *const envp[]);
 pid_t process_fork(const struct process_context *context);
 void process_sleep(struct process_waitq *waitq);
 int process_wake(struct process_waitq *waitq);
-struct process_context *process_get_context(void);
-void process_set_context(const struct process_context *context);
-uint8_t *process_get_kernel_stack(void);
 void process_switch(void);
 void process_schedule(void);
 pid_t process_wait(int *status);
@@ -80,6 +83,7 @@ int process_dup3(int oldfd, int newfd, int flags);
 int process_pipe(int *pipefd);
 int process_pipe2(int *pipefd, int flags);
 
+bool process_demand_page(uint8_t *address);
 void process_waitq_init(struct process_waitq *waitq);
 
 #endif

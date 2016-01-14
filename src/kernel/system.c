@@ -36,6 +36,8 @@ limitations under the License.
 #define SYS_CFG_WRITE    (1 << 30)
 #define SYS_CFG_SHUTDOWN (8 << 20)
 
+#define DFSR_FS(dfsr) (dfsr & ((1 << 5) - 1))
+
 static void enable_hight_vectors(void) {
   int sctlr;
 
@@ -50,6 +52,34 @@ static void enable_hight_vectors(void) {
     :
     : [sctlr] "r"(sctlr | SCTLR_V)
   );
+}
+
+static const char *data_abort_source(uint32_t dfsr) {
+  switch (DFSR_FS(dfsr)) {
+    case 0x01: return "Alignment fault";
+    case 0x04: return "Fault on instruction cache maintenance";
+    case 0x0c: return "Synchronous external abort on translation table walk, First level";
+    case 0x0e: return "Synchronous external abort on translation table walk, Second level";
+    case 0x1c: return "Synchronous parity error on translation table walk, First level";
+    case 0x1e: return "Synchronous parity error on translation table walk, Second level";
+    case 0x05: return "Translation fault, First level";
+    case 0x07: return "Translation fault, Second level";
+    case 0x03: return "Access flag fault, First level";
+    case 0x06: return "Access flag fault, Second level";
+    case 0x09: return "Domain fault, First level";
+    case 0x0b: return "Domain fault, Second level";
+    case 0x0d: return "Permission fault, First level";
+    case 0x0f: return "Permission fault, Second level";
+    case 0x02: return "Debug event";
+    case 0x08: return "Synchronous external abort";
+    case 0x10: return "TLB conflict abort";
+    case 0x14: return "Lockdown";
+    case 0x1a: return "Coprocessor abort";
+    case 0x19: return "Synchronous parity error on memory access";
+    case 0x16: return "Asynchronous external abort";
+    case 0x18: return "Asynchronous parity error on memory access";
+    default: return "Unknown fault";
+  }
 }
 
 void system_init(void) {
@@ -90,6 +120,49 @@ void system_irq_handler(void) {
 
 void system_svc_handler(void) {
   syscall_handler();
+}
+
+void system_data_abort_handler(void) {
+  uint32_t dfsr, dfar;
+  struct process_context *context;
+
+  /* DFSR */
+  __asm__(
+    "MRC p15, 0, %[dfsr], c5, c0, 0 \n\t"
+    : [dfsr] "=r"(dfsr)
+  );
+
+  /* DFAR */
+  __asm__(
+    "MRC p15, 0, %[dfar], c6, c0, 0 \n\t"
+    : [dfar] "=r"(dfar)
+  );
+
+  if (!current_process) {
+    goto fail;
+  }
+
+  context = process_get_context(current_process);
+  if (!IS_USER_MODE(context)) {
+    goto fail;
+  }
+
+  switch (DFSR_FS(dfsr)) {
+    case 0x05: // Translation fault (First level)
+    case 0x07: // Translation fault (Second level)
+      if (process_demand_page((void*)dfar)) {
+        goto done;
+      }
+      break;
+  }
+  process_kill(process_get_id(current_process), SIGSEGV);
+
+done:
+  process_switch();
+
+fail:
+  logger_debug("%s (address: 0x%08x)", data_abort_source(dfsr), dfar);
+  system_halt();
 }
 
 noreturn void system_halt(void) {

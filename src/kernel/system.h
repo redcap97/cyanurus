@@ -29,6 +29,7 @@ limitations under the License.
 void system_init(void);
 void system_irq_handler(void);
 void system_svc_handler(void);
+void system_data_abort_handler(void);
 noreturn void system_halt(void);
 noreturn void system_bug_on(const char *file, unsigned int line, const char *func);
 void system_sleep(void);
