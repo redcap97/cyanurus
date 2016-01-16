@@ -10,17 +10,17 @@ ifdef USE_CLANG
 	AS = clang -integrated-as
 
 	CFLAGS_ARCH  = -target armv7a-eabi -mfloat-abi=soft -marm -fshort-enums
-	ASFLAGS_ARCH = -target armv7a-eabi -mfloat-abi=hard -marm -fshort-enums
+	ASFLAGS_ARCH = -target armv7a-eabi
 else
 	CC = $(ARCH)-gcc
 	AS = $(CC)
 
 	CFLAGS_ARCH  = -march=armv7-a -mfloat-abi=soft -marm
-	ASFLAGS_ARCH = $(CFLAGS_ARCH)
+	ASFLAGS_ARCH = -march=armv7-a
 endif
 
-CFLAGS  = -Os -std=gnu99 -nostdinc -nostdlib -fno-builtin -Wall -Wextra -Werror
-ASFLAGS = $(CFLAGS)
+CFLAGS  = -Os -Wall -Wextra -Werror -std=gnu99 -nostdinc -nostdlib -fno-builtin
+ASFLAGS = -Os -Wall -Wextra -Werror
 
 LDFLAGS = -static -nostdlib
 
@@ -32,5 +32,5 @@ endif
 %.o: %.c
 	$(CC) $(CFLAGS) $(CFLAGS_ARCH) -c -MD -MP -o $@ $<
 
-%.o: %.S
-	$(AS) $(ASFLAGS) $(ASFLAGS_ARCH) -c -MD -MP -o $@ $<
+%.o: %.s
+	$(AS) $(ASFLAGS) $(ASFLAGS_ARCH) -c -o $@ $<
