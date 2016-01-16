@@ -74,6 +74,12 @@ enum process_state {
   STATE_DEAD,
 };
 
+struct process_signal {
+  sigset_t mask;
+  sigset_t pending;
+  struct k_sigaction actions[NSIG-1];
+};
+
 struct process {
   struct list next;
   struct list task;
@@ -90,11 +96,7 @@ struct process {
   uint8_t *kernel_stack;
   struct file *files[MAX_FD_SIZE];
   bitset close_on_exec[bitset_nslots(MAX_FD_SIZE)];
-  struct process_signal {
-    sigset_t mask;
-    sigset_t pending;
-    struct k_sigaction actions[NSIG-1];
-  } signal;
+  struct process_signal signal;
 };
 
 struct process_waitq_entry {
