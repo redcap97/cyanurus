@@ -19,6 +19,10 @@ limitations under the License.
 
 #define NULL ((void *)0)
 
+#define SEEK_SET 0
+#define SEEK_CUR 1
+#define SEEK_END 2
+
 #define bool _Bool
 #define true 1
 #define false 0
