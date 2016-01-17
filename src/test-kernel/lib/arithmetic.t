@@ -15,3 +15,4 @@ limitations under the License.
 */
 
 TEST(test_add_overflow_unsigned_long);
+TEST(test_add_overflow_long_long);
