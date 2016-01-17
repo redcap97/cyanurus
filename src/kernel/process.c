@@ -1147,10 +1147,13 @@ loff_t process_llseek(int fd, loff_t offset, int whence) {
   switch (whence) {
     case SEEK_SET:
       next_offset = offset;
+      break;
     case SEEK_CUR:
       next_offset = file->offset + offset;
+      break;
     case SEEK_END:
       next_offset = inode->size + offset;
+      break;
     default:
       return -EINVAL;
   }
