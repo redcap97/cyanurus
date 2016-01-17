@@ -557,7 +557,7 @@ void syscall_handler(void) {
     case 114: syscall_wait4(context);          break;
     case 119: syscall_sigreturn(context);      break;
     case 122: syscall_uname(context);          break;
-    case 140: syscall__llseek(context);         break;
+    case 140: syscall__llseek(context);        break;
     case 145: syscall_readv(context);          break;
     case 146: syscall_writev(context);         break;
     case 174: syscall_rt_sigaction(context);   break;
