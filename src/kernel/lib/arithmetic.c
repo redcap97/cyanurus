@@ -20,3 +20,7 @@ limitations under the License.
 bool add_overflow_unsigned_long(unsigned long a, unsigned long b) {
   return a > ULONG_MAX - b;
 }
+
+bool add_overflow_long_long(long long a, long long b) {
+  return (b > 0 && a > LLONG_MAX - b) || (b < 0 && a < LLONG_MIN - b);
+}

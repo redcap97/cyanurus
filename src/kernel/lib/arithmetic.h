@@ -20,5 +20,6 @@ limitations under the License.
 #include "lib/type.h"
 
 bool add_overflow_unsigned_long(unsigned long a, unsigned long b);
+bool add_overflow_long_long(long long a, long long b);
 
 #endif
