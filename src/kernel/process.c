@@ -1129,6 +1129,40 @@ int process_getdents64(int fd, struct dirent64 *data, size_t size) {
   return 0;
 }
 
+loff_t process_llseek(int fd, loff_t offset, int whence) {
+  struct file *file;
+  struct inode *inode;
+  size_t next_offset;
+
+  file = get_file(fd);
+  if (!file) {
+    return -EBADF;
+  }
+
+  if (file->type != FF_INODE) {
+    return -ESPIPE;
+  }
+  inode = file->dentry->inode;
+
+  switch (whence) {
+    case SEEK_SET:
+      next_offset = offset;
+    case SEEK_CUR:
+      next_offset = file->offset + offset;
+    case SEEK_END:
+      next_offset = inode->size + offset;
+    default:
+      return -EINVAL;
+  }
+
+  if (next_offset > inode->size) {
+    return -EINVAL;
+  }
+
+  file->offset = next_offset;
+  return next_offset;
+}
+
 int process_fstat64(int fd, struct stat64 *buf) {
   struct file *file;
 
