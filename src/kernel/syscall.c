@@ -432,7 +432,7 @@ void syscall__llseek(struct process_context *context) {
   loff_t r = process_llseek(fd, offset, whence);
 
   if (r < 0) {
-    args[0] = (int)r;
+    args[0] = r;
     return;
   }
 
