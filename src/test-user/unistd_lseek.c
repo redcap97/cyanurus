@@ -36,6 +36,9 @@ static void for_pipe(void) {
 
   TEST_ASSERT(lseek(pipefd[0], 0, SEEK_SET) == -1);
   TEST_ASSERT(errno == ESPIPE);
+
+  close(pipefd[0]);
+  close(pipefd[1]);
 }
 
 static void for_data_write(void) {
