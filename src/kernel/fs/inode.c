@@ -21,6 +21,7 @@ limitations under the License.
 #include "lib/string.h"
 #include "slab.h"
 #include "logger.h"
+#include "system.h"
 
 #define IMAP_BLOCKS     (superblock.s_imap_blocks)
 #define ZMAP_BLOCKS     (superblock.s_zmap_blocks)
@@ -422,11 +423,34 @@ int fs_inode_destroy(struct inode *inode) {
 
 void fs_inode_truncate(struct inode *inode, size_t size) {
   struct minix2_inode minix_inode;
+  size_t tsize, tstart, toffset, tcopy;
+  char buf[BLOCK_SIZE];
+  block_index ind_block;
+
   if (size != inode->size) {
     read_inode(inode->index, &minix_inode);
 
     if (size > inode->size) {
+      tstart = inode->size;
+      tsize = size - inode->size;
+
       extend_zone(&minix_inode, size);
+
+      while (tsize > 0) {
+        toffset = calculate_block_offset(tstart);
+        tcopy = calculate_block_copy_size(tstart, tsize);
+
+        ind_block = get_block(inode, tstart / BLOCK_SIZE);
+        fs_block_read(ind_block, buf);
+
+        memset(buf + toffset, 0, tcopy);
+        fs_block_write(ind_block, buf);
+
+        tstart += tcopy;
+        tsize -= tcopy;
+      }
+
+      SYSTEM_BUG_ON(tstart != size);
     } else {
       shrink_zone(&minix_inode, size);
     }
