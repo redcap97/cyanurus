@@ -23,7 +23,7 @@ cat <<EOF
 #include "logger.h"
 
 #define CYANURUS_SYSNAME "Cyanurus"
-#define CYANURUS_RELEASE "0.1.1"
+#define CYANURUS_RELEASE "0.2.0"
 #define CYANURUS_VERSION "$(date)"
 #define CYANURUS_MACHINE "ARMv7-A"
 
