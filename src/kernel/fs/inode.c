@@ -448,9 +448,9 @@ void fs_inode_truncate(struct inode *inode, size_t size) {
 
         tstart += tcopy;
         tsize -= tcopy;
-      }
 
-      SYSTEM_BUG_ON(tstart != size);
+        SYSTEM_BUG_ON((tstart + tsize) != size);
+      }
     } else {
       shrink_zone(&minix_inode, size);
     }
