@@ -374,6 +374,15 @@ static block_index get_block(struct inode *inode, block_index block) {
   return zones[z2];
 }
 
+static size_t calculate_block_offset(size_t start) {
+  return start % BLOCK_SIZE;
+}
+
+static size_t calculate_block_copy_size(size_t start, size_t size) {
+  size_t offset = calculate_block_offset(start);
+  return (offset + size) > BLOCK_SIZE ? (BLOCK_SIZE - offset) : size;
+}
+
 void fs_inode_init(void) {
   inode_cache = slab_cache_create("inode", sizeof(struct inode));
   list_init(&inodes);
@@ -466,13 +475,8 @@ ssize_t fs_inode_write(struct inode *inode, size_t size, size_t start, const voi
   }
 
   for (ind_zone = ind_start; ind_zone <= ind_end; ++ind_zone) {
-    offset = cur_start % BLOCK_SIZE;
-
-    if ((offset + cur_size) > BLOCK_SIZE) {
-      copy = BLOCK_SIZE - offset;
-    } else {
-      copy = cur_size;
-    }
+    offset = calculate_block_offset(cur_start);
+    copy = calculate_block_copy_size(cur_start, cur_size);
 
     if ((cur_start + copy) > inode->size) {
       fs_inode_truncate(inode, cur_start + copy);
@@ -512,13 +516,8 @@ ssize_t fs_inode_read(struct inode *inode, size_t size, size_t start, void *data
   ind_end   = (start + size) / BLOCK_SIZE;
 
   for (ind_zone = ind_start; ind_zone <= ind_end; ++ind_zone) {
-    offset = cur_start % BLOCK_SIZE;
-
-    if ((offset + cur_size) > BLOCK_SIZE) {
-      copy = BLOCK_SIZE - offset;
-    } else {
-      copy = cur_size;
-    }
+    offset = calculate_block_offset(cur_start);
+    copy = calculate_block_copy_size(cur_start, cur_size);
 
     ind_block = get_block(inode, ind_zone);
     fs_block_read(ind_block, buf);
