@@ -38,7 +38,7 @@ static void for_pipe(void) {
   TEST_ASSERT(errno == ESPIPE);
 }
 
-static void for_file_write(void) {
+static void for_data_write(void) {
   int fd;
 
   fd = open(FILENAME, O_CREAT|O_WRONLY|O_TRUNC, 0644);
@@ -58,7 +58,7 @@ static void for_file_write(void) {
   close(fd);
 }
 
-static void for_file_read(void) {
+static void for_data_read(void) {
   int fd;
   char buf[1024];
 
@@ -73,14 +73,47 @@ static void for_file_read(void) {
   close(fd);
 }
 
+static void for_hole_write(void) {
+  int fd;
+
+  fd = open(FILENAME, O_CREAT|O_WRONLY|O_TRUNC, 0644);
+  TEST_ASSERT(fd >= 0);
+
+  TEST_ASSERT(lseek(fd, 4, SEEK_SET) == 4);
+  TEST_ASSERT(write(fd, "O", 1) == 1);
+
+  close(fd);
+}
+
+static void for_hole_read(void) {
+  int fd;
+  char buf[1024];
+
+  fd = open(FILENAME, O_RDONLY);
+  TEST_ASSERT(fd >= 0);
+
+  TEST_ASSERT(read(fd, buf, sizeof(buf)) == 5);
+
+  TEST_ASSERT(buf[0] == '\0');
+  TEST_ASSERT(buf[1] == '\0');
+  TEST_ASSERT(buf[2] == '\0');
+  TEST_ASSERT(buf[3] == '\0');
+  TEST_ASSERT(buf[4] == 'O');
+
+  close(fd);
+}
+
 int main(void) {
   TEST_START();
 
   for_tty();
   for_pipe();
 
-  for_file_write();
-  for_file_read();
+  for_data_write();
+  for_data_read();
+
+  for_hole_write();
+  for_hole_read();
 
   TEST_SUCCEED();
   return 0;
