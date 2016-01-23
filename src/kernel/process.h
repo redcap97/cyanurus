@@ -67,6 +67,7 @@ ssize_t process_write(int fd, const void *data, size_t size);
 ssize_t process_read(int fd, void *data, size_t size);
 ssize_t process_writev(int fd, const struct iovec *iov, int iovcnt);
 ssize_t process_readv(int fd, const struct iovec *iov, int iovcnt);
+loff_t process_llseek(int fd, loff_t offset, int whence);
 int process_getdents64(int fd, struct dirent64 *data, size_t size);
 int process_fstat64(int fd, struct stat64 *buf);
 int process_ioctl(int fd, unsigned long request, void *argp);

@@ -20,6 +20,8 @@ limitations under the License.
 #include "lib/errno.h"
 #include "lib/termios.h"
 #include "lib/bitset.h"
+#include "lib/limits.h"
+#include "lib/arithmetic.h"
 #include "slab.h"
 #include "tty.h"
 #include "system.h"
@@ -1127,6 +1129,49 @@ int process_getdents64(int fd, struct dirent64 *data, size_t size) {
   }
 
   return 0;
+}
+
+loff_t process_llseek(int fd, loff_t offset, int whence) {
+  struct file *file;
+  struct inode *inode;
+  loff_t next_offset;
+
+  file = get_file(fd);
+  if (!file) {
+    return -EBADF;
+  }
+
+  if (file->type != FF_INODE) {
+    return -ESPIPE;
+  }
+  inode = file->dentry->inode;
+
+  switch (whence) {
+    case SEEK_SET:
+      next_offset = offset;
+      break;
+    case SEEK_CUR:
+      if (add_overflow_long_long(file->offset, offset)) {
+        return -EOVERFLOW;
+      }
+      next_offset = file->offset + offset;
+      break;
+    case SEEK_END:
+      if (add_overflow_long_long(inode->size, offset)) {
+        return -EOVERFLOW;
+      }
+      next_offset = inode->size + offset;
+      break;
+    default:
+      return -EINVAL;
+  }
+
+  if (next_offset < 0 || next_offset > ULONG_MAX) {
+    return -EOVERFLOW;
+  }
+
+  file->offset = next_offset;
+  return next_offset;
 }
 
 int process_fstat64(int fd, struct stat64 *buf) {

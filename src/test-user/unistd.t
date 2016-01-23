@@ -149,3 +149,9 @@ TEST(unistd_getcwd);
 $fixture copy_test_target
 */
 TEST(unistd_syscall_EFAULT);
+
+/*
+$fixture copy_test_target
+$fixture mkdir_tmp
+*/
+TEST(unistd_lseek);

@@ -416,6 +416,30 @@ void syscall_writev(struct process_context *context) {
   args[0] = process_writev(fd, iov, iovcnt);
 }
 
+void syscall__llseek(struct process_context *context) {
+  uint32_t *args = &context->r[0];
+
+  int fd = args[0];
+  loff_t offset = ((loff_t)args[1] << 32) | (loff_t)args[2];
+  loff_t *result = (loff_t*)args[3];
+  int whence = args[4];
+
+  if (!check_address_range(result, sizeof(loff_t))) {
+    args[0] = -EFAULT;
+    return;
+  }
+
+  loff_t r = process_llseek(fd, offset, whence);
+
+  if (r < 0) {
+    args[0] = r;
+    return;
+  }
+
+  *result = r;
+  args[0] = 0;
+}
+
 void syscall_getcwd(struct process_context *context) {
   uint32_t *args = &context->r[0];
 
@@ -533,6 +557,7 @@ void syscall_handler(void) {
     case 114: syscall_wait4(context);          break;
     case 119: syscall_sigreturn(context);      break;
     case 122: syscall_uname(context);          break;
+    case 140: syscall__llseek(context);        break;
     case 145: syscall_readv(context);          break;
     case 146: syscall_writev(context);         break;
     case 174: syscall_rt_sigaction(context);   break;
@@ -546,7 +571,6 @@ void syscall_handler(void) {
     case 358: syscall_dup3(context);           break;
     case 359: syscall_pipe2(context);          break;
 
-    case 140: // _llseek
     case 248: // exit_group
     case 270: // fadvise64_64
       syscall_pass(context, 0);

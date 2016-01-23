@@ -28,3 +28,25 @@ TEST(test_add_overflow_unsigned_long) {
   TEST_ASSERT(add_overflow_unsigned_long(0xffff0000UL, 0x0001ffffUL));
   TEST_ASSERT(add_overflow_unsigned_long(0xffffffffUL, 0xffffffffUL));
 }
+
+TEST(test_add_overflow_long_long) {
+  TEST_ASSERT(add_overflow_long_long(LLONG_MAX, 1));
+  TEST_ASSERT(!add_overflow_long_long(LLONG_MAX, 0));
+
+  TEST_ASSERT(add_overflow_long_long(1, LLONG_MAX));
+  TEST_ASSERT(!add_overflow_long_long(0, LLONG_MAX));
+
+  TEST_ASSERT(add_overflow_long_long(LLONG_MIN, -1));
+  TEST_ASSERT(!add_overflow_long_long(LLONG_MIN, 0));
+
+  TEST_ASSERT(add_overflow_long_long(-1, LLONG_MIN));
+  TEST_ASSERT(!add_overflow_long_long(0, LLONG_MIN));
+
+  TEST_ASSERT(add_overflow_long_long(LLONG_MAX, LLONG_MAX));
+  TEST_ASSERT(add_overflow_long_long(LLONG_MIN, LLONG_MIN));
+  TEST_ASSERT(!add_overflow_long_long(LLONG_MAX, LLONG_MIN));
+
+  TEST_ASSERT(!add_overflow_long_long(1, 1));
+  TEST_ASSERT(!add_overflow_long_long(1, -1));
+  TEST_ASSERT(!add_overflow_long_long(-1, -1));
+}

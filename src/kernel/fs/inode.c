@@ -21,6 +21,7 @@ limitations under the License.
 #include "lib/string.h"
 #include "slab.h"
 #include "logger.h"
+#include "system.h"
 
 #define IMAP_BLOCKS     (superblock.s_imap_blocks)
 #define ZMAP_BLOCKS     (superblock.s_zmap_blocks)
@@ -374,6 +375,15 @@ static block_index get_block(struct inode *inode, block_index block) {
   return zones[z2];
 }
 
+static size_t calculate_block_offset(size_t start) {
+  return start % BLOCK_SIZE;
+}
+
+static size_t calculate_block_copy_size(size_t start, size_t size) {
+  size_t offset = calculate_block_offset(start);
+  return (offset + size) > BLOCK_SIZE ? (BLOCK_SIZE - offset) : size;
+}
+
 void fs_inode_init(void) {
   inode_cache = slab_cache_create("inode", sizeof(struct inode));
   list_init(&inodes);
@@ -413,11 +423,34 @@ int fs_inode_destroy(struct inode *inode) {
 
 void fs_inode_truncate(struct inode *inode, size_t size) {
   struct minix2_inode minix_inode;
+  size_t tsize, tstart, toffset, tcopy;
+  char buf[BLOCK_SIZE];
+  block_index ind_block;
+
   if (size != inode->size) {
     read_inode(inode->index, &minix_inode);
 
     if (size > inode->size) {
+      tstart = inode->size;
+      tsize = size - inode->size;
+
       extend_zone(&minix_inode, size);
+
+      while (tsize > 0) {
+        toffset = calculate_block_offset(tstart);
+        tcopy = calculate_block_copy_size(tstart, tsize);
+
+        ind_block = get_block(inode, tstart / BLOCK_SIZE);
+        fs_block_read(ind_block, buf);
+
+        memset(buf + toffset, 0, tcopy);
+        fs_block_write(ind_block, buf);
+
+        tstart += tcopy;
+        tsize -= tcopy;
+
+        SYSTEM_BUG_ON((tstart + tsize) != size);
+      }
     } else {
       shrink_zone(&minix_inode, size);
     }
@@ -466,13 +499,8 @@ ssize_t fs_inode_write(struct inode *inode, size_t size, size_t start, const voi
   }
 
   for (ind_zone = ind_start; ind_zone <= ind_end; ++ind_zone) {
-    offset = cur_start % BLOCK_SIZE;
-
-    if ((offset + cur_size) > BLOCK_SIZE) {
-      copy = BLOCK_SIZE - offset;
-    } else {
-      copy = cur_size;
-    }
+    offset = calculate_block_offset(cur_start);
+    copy = calculate_block_copy_size(cur_start, cur_size);
 
     if ((cur_start + copy) > inode->size) {
       fs_inode_truncate(inode, cur_start + copy);
@@ -512,13 +540,8 @@ ssize_t fs_inode_read(struct inode *inode, size_t size, size_t start, void *data
   ind_end   = (start + size) / BLOCK_SIZE;
 
   for (ind_zone = ind_start; ind_zone <= ind_end; ++ind_zone) {
-    offset = cur_start % BLOCK_SIZE;
-
-    if ((offset + cur_size) > BLOCK_SIZE) {
-      copy = BLOCK_SIZE - offset;
-    } else {
-      copy = cur_size;
-    }
+    offset = calculate_block_offset(cur_start);
+    copy = calculate_block_copy_size(cur_start, cur_size);
 
     ind_block = get_block(inode, ind_zone);
     fs_block_read(ind_block, buf);
