@@ -1170,10 +1170,6 @@ loff_t process_llseek(int fd, loff_t offset, int whence) {
     return -EOVERFLOW;
   }
 
-  if (next_offset > inode->size) {
-    return -EINVAL;
-  }
-
   file->offset = next_offset;
   return next_offset;
 }
