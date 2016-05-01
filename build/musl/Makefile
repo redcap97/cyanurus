@@ -3,7 +3,6 @@ BUILD_DIR = ..
 
 include $(BUILD_DIR)/config.mak
 
-MUSL_CC     = $(ARCH)-gcc
 MUSL_CFLAGS = -Os -march=armv7-a -mfloat-abi=soft -marm
 MUSL_OPTION = --disable-shared
 
@@ -25,4 +24,4 @@ lib/libc.a: config.mak
 	$(MAKE) -C $(SRC_DIR)
 
 config.mak: VERSION
-	cd $(SRC_DIR); CC="$(MUSL_CC)" CFLAGS="$(MUSL_CFLAGS)" ./configure $(MUSL_OPTION)
+	cd $(SRC_DIR); CROSS_COMPILE="$(ARCH)-" CFLAGS="$(MUSL_CFLAGS)" ./configure $(MUSL_OPTION)
