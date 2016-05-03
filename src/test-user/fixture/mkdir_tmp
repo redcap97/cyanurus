@@ -17,7 +17,7 @@
 set -e
 
 mkdir -p disk
-fuse-mfs disk.img disk
+${ROOT_PATH}/tool/mount disk.img disk
 
 mkdir -p disk/tmp
 ${ROOT_PATH}/tool/umount disk

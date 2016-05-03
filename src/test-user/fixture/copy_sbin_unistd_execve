@@ -17,7 +17,7 @@
 set -e
 
 mkdir -p disk
-fuse-mfs disk.img disk
+${ROOT_PATH}/tool/mount disk.img disk
 
 mkdir -p disk/sbin
 cp $BUILD_PATH/unistd_execve disk/sbin

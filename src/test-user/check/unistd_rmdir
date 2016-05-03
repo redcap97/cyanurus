@@ -22,7 +22,7 @@ fail() {
 }
 
 mkdir -p disk
-fuse-mfs disk.img disk
+${ROOT_PATH}/tool/mount disk.img disk
 
 test ! -d disk/tmp  || fail
 test   -d disk/sbin || fail

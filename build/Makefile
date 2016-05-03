@@ -11,7 +11,7 @@ QEMU     = qemu-system-arm
 QEMU_IMG = qemu-img
 
 MKFS   = mkfs.mfs
-MOUNT  = fuse-mfs
+MOUNT  = $(ROOT_DIR)/tool/mount
 UMOUNT = $(ROOT_DIR)/tool/umount
 
 .PHONY: all clean clobber test copy run pty debug-run debug-pty
