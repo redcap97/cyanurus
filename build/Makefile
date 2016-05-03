@@ -1,3 +1,4 @@
+ROOT_DIR = ..
 include config.mak
 
 KERNEL     = kernel/cyanurus.elf
@@ -11,7 +12,7 @@ QEMU_IMG = qemu-img
 
 MKFS   = mkfs.mfs
 MOUNT  = fuse-mfs
-UMOUNT = fusermount -u
+UMOUNT = $(ROOT_DIR)/tool/umount
 
 .PHONY: all clean clobber test copy run pty debug-run debug-pty
 
