@@ -3,7 +3,9 @@ ARCH = arm-none-eabi
 QEMU     = qemu-system-arm
 QEMU_IMG = qemu-img
 
-MKFS.MINIX = mkfs.minix
+MKFS.MFS = mkfs.mfs
+MOUNT = fuse-mfs
+UMOUNT = fusermount -u
 
 ifdef USE_CLANG
 	CC = clang -integrated-as

@@ -19,7 +19,7 @@ limitations under the License.
 
 #include "lib/type.h"
 
-#define BLOCK_SIZE 1024
+#define BLOCK_SIZE (1024*4)
 
 typedef uint16_t block_index;
 

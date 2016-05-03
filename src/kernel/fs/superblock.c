@@ -20,13 +20,13 @@ limitations under the License.
 #include "lib/string.h"
 #include "fs/block.h"
 
-#define SUPERBLOCK_ZONE_INDEX 1
+#define SUPERBLOCK_ADDRESS 0x400
 
 struct minix3_superblock superblock;
 
 void fs_superblock_init(void) {
   char buf[BLOCK_SIZE];
 
-  fs_block_read(SUPERBLOCK_ZONE_INDEX, buf);
-  memcpy(&superblock, buf, sizeof(struct minix3_superblock));
+  fs_block_read(0, buf);
+  memcpy(&superblock, buf + SUPERBLOCK_ADDRESS, sizeof(struct minix3_superblock));
 }

@@ -51,14 +51,14 @@ test: all
 
 copy: all $(DISK_IMAGE)
 	mkdir -p $(MOUNT_DIR)
-	sudo mount $(DISK_IMAGE) $(MOUNT_DIR)
+	$(MOUNT) $(DISK_IMAGE) $(MOUNT_DIR)
 	mkdir -p $(MOUNT_DIR)/sbin
 	cp $(INIT) $(MOUNT_DIR)/sbin/init
-	sudo umount $(MOUNT_DIR)
+	$(UMOUNT) $(MOUNT_DIR)
 
 $(DISK_IMAGE):
 	$(QEMU_IMG) create -f raw $@ 64M
-	$(MKFS.MINIX) -3 $@
+	$(MKFS.MFS) -B 4096 $@
 
 pty:       QEMUFLAGS += -serial pty
 debug-run: QEMUFLAGS += -s -S
