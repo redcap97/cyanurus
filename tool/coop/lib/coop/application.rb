@@ -39,11 +39,11 @@ class Coop::Application
     shutdown
   )
 
-  attr_reader :src_path
+  attr_reader :source_path
   attr_reader :stats
 
-  def initialize(src_path)
-    @src_path = src_path
+  def initialize(source_path: '.')
+    @source_path = source_path
     @stats = Coop::Statistics.new(STDOUT)
   end
 
@@ -122,7 +122,7 @@ struct test_entry test_entries[] = {
   def get_entry_files
     paths = []
 
-    pattern = File.join(@src_path, '**/*.t')
+    pattern = File.join(@source_path, '**/*.t')
     Dir.glob(pattern) do |path|
       paths << path
     end

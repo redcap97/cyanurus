@@ -9,7 +9,7 @@ TEST_DIR = $(ROOT_DIR)/src/test-kernel
 SRC_DIR  = $(ROOT_DIR)/src/kernel
 VPATH = $(TEST_DIR) $(SRC_DIR)
 
-COOP = $(ROOT_DIR)/tool/coop/bin/coop -s $(TEST_DIR)
+COOP = $(ROOT_DIR)/tool/coop/bin/coop --source $(TEST_DIR)
 GEN_CONFIG = $(ROOT_DIR)/tool/gen_config
 
 TARGET = cyanurus
