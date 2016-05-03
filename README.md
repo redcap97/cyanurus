@@ -27,17 +27,16 @@ docker run -it --rm redcap97/cyanurus
 ### Required
 
 * GNU Make
-* gcc (arm-none-eabi)
-* binutils (arm-none-eabi)
-* ruby
-* qemu-system-arm
-* qemu-img
+* GCC (arm-none-eabi)
+* Binutils (arm-none-eabi)
+* Ruby
+* QEMU (qemu-img, qemu-system-arm)
 * [fuse-mfs](https://github.com/redcap97/fuse-mfs)
 
 ### Optional
 
-* clang
-* gdb (arm-none-eabi)
+* Clang
+* GDB (arm-none-eabi)
 
 ## License
 
