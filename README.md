@@ -26,14 +26,13 @@ docker run -it --rm redcap97/cyanurus
 
 ### Required
 
-* Linux
-* gmake
+* GNU Make
 * gcc (arm-none-eabi)
 * binutils (arm-none-eabi)
 * ruby
 * qemu-system-arm
 * qemu-img
-* mkfs.minix
+* [fuse-mfs](https://github.com/redcap97/fuse-mfs)
 
 ### Optional
 
