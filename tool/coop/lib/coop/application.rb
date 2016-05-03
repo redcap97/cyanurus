@@ -39,10 +39,12 @@ class Coop::Application
     shutdown
   )
 
+  attr_reader :root_path
   attr_reader :source_path
   attr_reader :stats
 
-  def initialize(source_path: '.')
+  def initialize(root_path: '.', source_path: '.')
+    @root_path = File.expand_path(root_path)
     @source_path = File.expand_path(source_path)
     @stats = Coop::Statistics.new(STDOUT)
   end
