@@ -17,9 +17,9 @@
 set -e
 
 mkdir -p disk
-sudo mount disk.img disk
+fuse-mfs disk.img disk
 
 mkdir -p disk/sbin
 cp $BUILD_PATH/../init/init disk/sbin
 
-sudo umount disk
+fusermount -u disk

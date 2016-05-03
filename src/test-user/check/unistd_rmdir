@@ -17,14 +17,14 @@
 set -e
 
 fail() {
-  sudo umount disk
+  fusermount -u disk
   exit 1
 }
 
 mkdir -p disk
-sudo mount disk.img disk
+fuse-mfs disk.img disk
 
 test ! -d disk/tmp  || fail
 test   -d disk/sbin || fail
 
-sudo umount disk
+fusermount -u disk

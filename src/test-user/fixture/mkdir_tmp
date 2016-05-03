@@ -17,7 +17,7 @@
 set -e
 
 mkdir -p disk
-sudo mount disk.img disk
+fuse-mfs disk.img disk
 
 mkdir -p disk/tmp
-sudo umount disk
+fusermount -u disk

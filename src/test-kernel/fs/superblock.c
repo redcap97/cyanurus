@@ -39,6 +39,6 @@ TEST(test_fs_superblock_init) {
   TEST_ASSERT(superblock.s_max_size      > 0);
   TEST_ASSERT(superblock.s_zones         > 0);
   TEST_ASSERT(superblock.s_magic         == 0x4d5a);
-  TEST_ASSERT(superblock.s_blocksize     == 1024);
+  TEST_ASSERT(superblock.s_blocksize     == 4096);
   TEST_ASSERT(superblock.s_disk_version  == 0);
 }

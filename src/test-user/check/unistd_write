@@ -19,12 +19,12 @@ set -e
 EXPECTED="${SOURCE_PATH}/share/alice.txt"
 
 fail() {
-  sudo umount disk
+  fusermount -u disk
   exit 1
 }
 
 mkdir -p disk
-sudo mount disk.img disk
+fuse-mfs disk.img disk
 
 diff -u disk/tmp/alice.txt ${EXPECTED} 1>&2 || fail
-sudo umount disk
+fusermount -u disk

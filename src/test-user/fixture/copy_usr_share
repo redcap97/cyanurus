@@ -17,9 +17,9 @@
 set -e
 
 mkdir -p disk
-sudo mount disk.img disk
+fuse-mfs disk.img disk
 
 mkdir -p disk/usr/share
 cp -r ${SOURCE_PATH}/share/* disk/usr/share
 
-sudo umount disk
+fusermount -u disk

@@ -44,7 +44,7 @@ class Coop::Resource
     options = {out: '/dev/null'}
 
     system('qemu-img', 'create', '-f', 'raw', disk, '64M', options)
-    system('mkfs.minix', '-3', disk, options)
+    system('mkfs.mfs', '-B', '4096', disk, options)
   end
 
   def release
