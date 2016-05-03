@@ -6,6 +6,13 @@ DISK_IMAGE = disk.img
 MOUNT_DIR  = $(basename $(DISK_IMAGE))
 QEMUFLAGS  = -M vexpress-a9 -m 1G -nographic -drive if=sd,file=$(DISK_IMAGE),format=raw
 
+QEMU     = qemu-system-arm
+QEMU_IMG = qemu-img
+
+MKFS   = mkfs.mfs
+MOUNT  = fuse-mfs
+UMOUNT = fusermount -u
+
 .PHONY: all clean clobber test copy run pty debug-run debug-pty
 
 all: $(DISK_IMAGE) build-kernel build-init build-test-kernel build-test-user
@@ -58,7 +65,7 @@ copy: all $(DISK_IMAGE)
 
 $(DISK_IMAGE):
 	$(QEMU_IMG) create -f raw $@ 64M
-	$(MKFS.MFS) -B 4096 $@
+	$(MKFS) -B 4096 $@
 
 pty:       QEMUFLAGS += -serial pty
 debug-run: QEMUFLAGS += -s -S
