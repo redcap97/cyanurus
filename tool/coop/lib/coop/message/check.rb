@@ -20,6 +20,7 @@ require 'open3'
 
 class Coop::Message::Check
   def initialize(app, session)
+    @root_path = app.root_path
     @source_path = app.source_path
     @resource = session.resource
     @stats    = app.stats
@@ -35,6 +36,7 @@ class Coop::Message::Check
     env = {
       'TEST_NAME'   => test,
       'BUILD_PATH'  => Dir.getwd,
+      'ROOT_PATH'   => @root_path,
       'SOURCE_PATH' => @source_path,
     }
 
