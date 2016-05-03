@@ -23,9 +23,7 @@ class Coop::Resource
   attr_reader :dir
 
   def self.create
-    new.tap do |resource|
-      resource.prepare
-    end
+    new.tap(&:prepare)
   end
 
   def initialize
