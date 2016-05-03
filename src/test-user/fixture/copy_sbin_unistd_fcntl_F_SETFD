@@ -23,4 +23,4 @@ mkdir -p disk/sbin
 cp $BUILD_PATH/unistd_fcntl_F_SETFD disk/sbin
 cp $BUILD_PATH/unistd_fcntl_F_SETFD_new disk/sbin
 
-fusermount -u disk
+${ROOT_PATH}/tool/umount disk

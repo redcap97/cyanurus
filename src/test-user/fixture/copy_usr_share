@@ -22,4 +22,4 @@ fuse-mfs disk.img disk
 mkdir -p disk/usr/share
 cp -r ${SOURCE_PATH}/share/* disk/usr/share
 
-fusermount -u disk
+${ROOT_PATH}/tool/umount disk

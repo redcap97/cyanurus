@@ -17,7 +17,7 @@
 set -e
 
 fail() {
-  fusermount -u disk
+  ${ROOT_PATH}/tool/umount disk
   exit 1
 }
 
@@ -27,4 +27,4 @@ fuse-mfs disk.img disk
 test ! -d disk/tmp  || fail
 test   -d disk/sbin || fail
 
-fusermount -u disk
+${ROOT_PATH}/tool/umount disk

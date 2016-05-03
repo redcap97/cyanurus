@@ -20,4 +20,4 @@ mkdir -p disk
 fuse-mfs disk.img disk
 
 mkdir -p disk/tmp
-fusermount -u disk
+${ROOT_PATH}/tool/umount disk

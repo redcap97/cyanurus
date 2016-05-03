@@ -22,4 +22,4 @@ fuse-mfs disk.img disk
 mkdir -p disk/sbin
 cp $BUILD_PATH/$TEST_NAME disk/sbin
 
-fusermount -u disk
+${ROOT_PATH}/tool/umount disk

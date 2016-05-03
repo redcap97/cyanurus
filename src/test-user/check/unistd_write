@@ -19,7 +19,7 @@ set -e
 EXPECTED="${SOURCE_PATH}/share/alice.txt"
 
 fail() {
-  fusermount -u disk
+  ${ROOT_PATH}/tool/umount disk
   exit 1
 }
 
@@ -27,4 +27,4 @@ mkdir -p disk
 fuse-mfs disk.img disk
 
 diff -u disk/tmp/alice.txt ${EXPECTED} 1>&2 || fail
-fusermount -u disk
+${ROOT_PATH}/tool/umount disk

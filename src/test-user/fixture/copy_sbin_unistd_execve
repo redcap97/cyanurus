@@ -23,4 +23,4 @@ mkdir -p disk/sbin
 cp $BUILD_PATH/unistd_execve disk/sbin
 cp $BUILD_PATH/unistd_execve_new disk/sbin
 
-fusermount -u disk
+${ROOT_PATH}/tool/umount disk
