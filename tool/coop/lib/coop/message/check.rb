@@ -35,10 +35,10 @@ class Coop::Message::Check
     env = {
       'TEST_NAME'   => test,
       'BUILD_PATH'  => Dir.getwd,
-      'SOURCE_PATH' => File.expand_path(@source_path),
+      'SOURCE_PATH' => @source_path,
     }
 
-    command = File.expand_path(File.join(@source_path, 'check', name))
+    command = File.join(@source_path, 'check', name)
 
     Dir.chdir(@resource.dir) do
       stdin_data = output.body.gsub(/\r?\n/, "\n")

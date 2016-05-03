@@ -30,10 +30,10 @@ class Coop::Message::Fixture
     env = {
       'TEST_NAME'   => test,
       'BUILD_PATH'  => Dir.getwd,
-      'SOURCE_PATH' => File.expand_path(@source_path),
+      'SOURCE_PATH' => @source_path,
     }
 
-    command = File.expand_path(File.join(@source_path, 'fixture', name))
+    command = File.join(@source_path, 'fixture', name)
 
     Dir.chdir(@resource.dir) do
       raise Coop::FixtureError, "fixture error: #{command}" unless system(env, command)

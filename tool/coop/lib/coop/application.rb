@@ -43,7 +43,7 @@ class Coop::Application
   attr_reader :stats
 
   def initialize(source_path: '.')
-    @source_path = source_path
+    @source_path = File.expand_path(source_path)
     @stats = Coop::Statistics.new(STDOUT)
   end
 
