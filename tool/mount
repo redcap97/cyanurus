@@ -29,7 +29,7 @@ osx-fuse-mfs() {
   local check_file=${mount_point}/.fuse-mfs
 
   touch ${check_file}
-  fuse-mfs ${device} ${mount_point}
+  fuse-mfs -osync ${device} ${mount_point}
 
   local retry=0
 
