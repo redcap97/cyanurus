@@ -21,9 +21,9 @@ limitations under the License.
 #include "slab.h"
 #include "logger.h"
 #include "uart.h"
+#include "buddy.h"
 
-#define DIRENT_SIZE       sizeof(struct minix3_dirent)
-#define DIRENTS_PER_BLOCK (BLOCK_SIZE / DIRENT_SIZE)
+#define DIRENT_SIZE sizeof(struct minix3_dirent)
 
 static struct slab_cache *dentry_cache;
 static struct dentry *root_dentry;
@@ -48,7 +48,8 @@ static struct dentry *alloc_dentry(struct dentry *parent, struct inode *inode, c
 static int read_children(struct dentry *dentry) {
   ssize_t rs, i;
   size_t offset = 0;
-  struct minix3_dirent dirents[DIRENTS_PER_BLOCK], *dirent;
+  _page_cleanup_ struct page *page = buddy_alloc(BLOCK_SIZE);
+  struct minix3_dirent *dirents = page_address(page), *dirent;
   struct dentry *child_dentry, *temp_dentry;
   struct list children;
 
@@ -119,7 +120,8 @@ static int write_child(struct dentry *dentry) {
 static int remove_child(struct dentry *dentry, const char *name) {
   ssize_t rs, i;
   size_t offset = 0;
-  struct minix3_dirent dirents[DIRENTS_PER_BLOCK], *dirent;
+  _page_cleanup_ struct page *page = buddy_alloc(BLOCK_SIZE);
+  struct minix3_dirent *dirents = page_address(page), *dirent;
 
   while (1) {
     if ((rs = fs_inode_read(dentry->inode, BLOCK_SIZE, offset, dirents)) < 0) {
