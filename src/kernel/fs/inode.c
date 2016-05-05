@@ -62,9 +62,11 @@ static void release_inode(struct inode *inode) {
 
 static uint32_t mark_map(block_index start, block_index end) {
   int i, b;
-  uint8_t buf[BLOCK_SIZE];
   uint32_t index;
   block_index block;
+
+  _page_cleanup_ struct page *page = buddy_alloc(BLOCK_SIZE);
+  uint8_t *buf = page_address(page);
 
   for (block = start, index = 0; block < end; ++block) {
     fs_block_read(block, buf);
@@ -89,7 +91,8 @@ static uint32_t mark_map(block_index start, block_index end) {
 }
 
 static void unmark_map(uint32_t index, block_index start) {
-  uint8_t buf[BLOCK_SIZE];
+  _page_cleanup_ struct page *page = buddy_alloc(BLOCK_SIZE);
+  uint8_t *buf = page_address(page);
   block_index block = start + ((index / 8) / BLOCK_SIZE);
 
   fs_block_read(block, buf);
