@@ -18,6 +18,7 @@ limitations under the License.
 #define _CYANURUS_PAGE_H_
 
 #include "lib/list.h"
+#include "lib/extension.h"
 
 #define PAGE_START ((char*)(0x65000000))
 
