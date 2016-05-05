@@ -38,7 +38,7 @@ TEST(test_fs_superblock_init) {
   TEST_ASSERT(superblock.s_log_zone_size == 0);
   TEST_ASSERT(superblock.s_max_size      > 0);
   TEST_ASSERT(superblock.s_zones         > 0);
-  TEST_ASSERT(superblock.s_magic         == 0x4d5a);
+  TEST_ASSERT(superblock.s_magic         == SUPER_MAGIC_V3);
   TEST_ASSERT(superblock.s_blocksize     == 4096);
   TEST_ASSERT(superblock.s_disk_version  == 0);
 }
