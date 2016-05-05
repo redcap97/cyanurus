@@ -91,9 +91,10 @@ static uint32_t mark_map(block_index start, block_index end) {
 }
 
 static void unmark_map(uint32_t index, block_index start) {
+  block_index block = start + ((index / 8) / BLOCK_SIZE);
+
   _page_cleanup_ struct page *page = buddy_alloc(BLOCK_SIZE);
   uint8_t *buf = page_address(page);
-  block_index block = start + ((index / 8) / BLOCK_SIZE);
 
   fs_block_read(block, buf);
 
