@@ -22,6 +22,7 @@ limitations under the License.
 #include "slab.h"
 #include "logger.h"
 #include "system.h"
+#include "buddy.h"
 
 #define IMAP_BLOCKS     (superblock.s_imap_blocks)
 #define ZMAP_BLOCKS     (superblock.s_zmap_blocks)
@@ -424,8 +425,10 @@ int fs_inode_destroy(struct inode *inode) {
 void fs_inode_truncate(struct inode *inode, size_t size) {
   struct minix2_inode minix_inode;
   size_t tsize, tstart, toffset, tcopy;
-  char buf[BLOCK_SIZE];
   block_index ind_block;
+
+  _page_cleanup_ struct page *page = buddy_alloc(BLOCK_SIZE);
+  char *buf = page_address(page);
 
   if (size != inode->size) {
     read_inode(inode->index, &minix_inode);
@@ -487,9 +490,12 @@ void fs_inode_set(struct inode *inode) {
 
 ssize_t fs_inode_write(struct inode *inode, size_t size, size_t start, const void *data) {
   block_index ind_zone, ind_block, ind_start, ind_end;
-  char buf[BLOCK_SIZE];
+
   const char *cur_data = data;
   size_t offset, copy, cur_size = size, cur_start = start;
+
+  _page_cleanup_ struct page *page = buddy_alloc(BLOCK_SIZE);
+  char *buf = page_address(page);
 
   ind_start = start / BLOCK_SIZE;
   ind_end   = (start + size) / BLOCK_SIZE;
@@ -522,8 +528,10 @@ ssize_t fs_inode_write(struct inode *inode, size_t size, size_t start, const voi
 
 ssize_t fs_inode_read(struct inode *inode, size_t size, size_t start, void *data) {
   block_index ind_zone, ind_block, ind_start, ind_end;
-  char buf[BLOCK_SIZE], *cur_data = data;
   size_t offset, copy, cur_size, cur_start;
+
+  _page_cleanup_ struct page *page = buddy_alloc(BLOCK_SIZE);
+  char *buf = page_address(page), *cur_data = data;
 
   if (inode->size <= start) {
     return 0;
