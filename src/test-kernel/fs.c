@@ -38,6 +38,8 @@ static void setup(void) {
 
 TEST(test_fs_check_path) {
   char path[PATH_MAX + 100];
+  setup();
+
   generate_path(path, sizeof(path));
 
   TEST_ASSERT(fs_create(path, O_WRONLY|O_CREAT, 0644) == -ENAMETOOLONG);
