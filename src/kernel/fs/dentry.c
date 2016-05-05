@@ -48,10 +48,12 @@ static struct dentry *alloc_dentry(struct dentry *parent, struct inode *inode, c
 static int read_children(struct dentry *dentry) {
   ssize_t rs, i;
   size_t offset = 0;
-  _page_cleanup_ struct page *page = buddy_alloc(BLOCK_SIZE);
-  struct minix3_dirent *dirents = page_address(page), *dirent;
+  struct minix3_dirent *dirent;
   struct dentry *child_dentry, *temp_dentry;
   struct list children;
+
+  _page_cleanup_ struct page *page = buddy_alloc(BLOCK_SIZE);
+  struct minix3_dirent *dirents = page_address(page);
 
   list_init(&children);
 
@@ -120,8 +122,10 @@ static int write_child(struct dentry *dentry) {
 static int remove_child(struct dentry *dentry, const char *name) {
   ssize_t rs, i;
   size_t offset = 0;
+  struct minix3_dirent *dirent;
+
   _page_cleanup_ struct page *page = buddy_alloc(BLOCK_SIZE);
-  struct minix3_dirent *dirents = page_address(page), *dirent;
+  struct minix3_dirent *dirents = page_address(page);
 
   while (1) {
     if ((rs = fs_inode_read(dentry->inode, BLOCK_SIZE, offset, dirents)) < 0) {
