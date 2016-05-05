@@ -30,6 +30,8 @@ limitations under the License.
 #define PF_FREE_LIST  (1 << 0)
 #define PF_FIRST_PAGE (1 << 1)
 
+#define _page_cleanup_ _cleanup_(page_cleanup)
+
 typedef unsigned long page_index;
 
 struct page {
@@ -45,5 +47,6 @@ void page_init(void);
 void *page_address(const struct page *page);
 struct page *page_find_by_address(void *address);
 struct page *page_find_head(const struct page *page);
+void page_cleanup(struct page **page);
 
 #endif

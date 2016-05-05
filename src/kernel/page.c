@@ -52,3 +52,9 @@ struct page *page_find_head(const struct page *page) {
 
   return NULL;
 }
+
+void page_cleanup(struct page **page) {
+  if (*page) {
+    buddy_free(*page);
+  }
+}

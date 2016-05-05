@@ -21,13 +21,15 @@ limitations under the License.
 #include "fs/block.h"
 #include "logger.h"
 #include "system.h"
+#include "buddy.h"
 
 #define SUPERBLOCK_ADDRESS 0x400
 
 struct minix3_superblock superblock;
 
 void fs_superblock_init(void) {
-  char buf[BLOCK_SIZE];
+  _page_cleanup_ struct page *page = buddy_alloc(BLOCK_SIZE);
+  char *buf = page_address(page);
 
   SYSTEM_BUG_ON((SUPERBLOCK_ADDRESS + sizeof(struct minix3_superblock)) > BLOCK_SIZE);
 

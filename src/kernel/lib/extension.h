@@ -17,6 +17,7 @@ limitations under the License.
 #ifndef _CYANURUS_LIB_EXTENSION_H_
 #define _CYANURUS_LIB_EXTENSION_H_
 
+#define _cleanup_(x) __attribute__((cleanup(x)))
 #define noreturn __attribute__((noreturn))
 
 #endif
