@@ -22,6 +22,7 @@ limitations under the License.
 #include "fs/superblock.h"
 #include "fs/inode.h"
 #include "fs/dentry.h"
+#include "buddy.h"
 
 static void remove_dentry_and_children(struct dentry *dentry) {
   struct dentry *child, *temp;
@@ -43,8 +44,10 @@ void fs_init(void) {
 int fs_create(const char *path, int flags, mode_t mode) {
   struct dentry *dentry = NULL;
   struct inode *inode = NULL;
-  char buf[PATH_MAX];
   int errno = -EINVAL;
+
+  _page_cleanup_ struct page *page = buddy_alloc(PATH_MAX);
+  char *buf = page_address(page);
 
   if (strnlen(path, PATH_MAX) == PATH_MAX) {
     return -ENAMETOOLONG;
@@ -110,8 +113,10 @@ int fs_unlink(const char *path) {
 int fs_mkdir(const char *path, mode_t mode) {
   struct dentry *dentry = NULL, *parent_dentry = NULL;
   struct inode *inode = NULL;
-  char buf[PATH_MAX];
   int errno = -EINVAL;
+
+  _page_cleanup_ struct page *page = buddy_alloc(PATH_MAX);
+  char *buf = page_address(page);
 
   if (strnlen(path, PATH_MAX) == PATH_MAX) {
     return -ENAMETOOLONG;
