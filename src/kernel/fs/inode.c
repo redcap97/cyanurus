@@ -137,8 +137,10 @@ static void unmark_zmap(block_index index) {
 }
 
 static void read_inode(inode_index index, struct minix2_inode *inode) {
-  struct minix2_inode inodes[INODES_PER_BLOCK];
   block_index inode_block;
+
+  _page_cleanup_ struct page *page = buddy_alloc(BLOCK_SIZE);
+  struct minix2_inode *inodes = page_address(page);
 
   index--;
   inode_block = index / INODES_PER_BLOCK;
@@ -148,8 +150,10 @@ static void read_inode(inode_index index, struct minix2_inode *inode) {
 }
 
 static void write_inode(inode_index index, const struct minix2_inode *inode) {
-  struct minix2_inode inodes[INODES_PER_BLOCK];
   block_index inode_block;
+
+  _page_cleanup_ struct page *page = buddy_alloc(BLOCK_SIZE);
+  struct minix2_inode *inodes = page_address(page);
 
   index--;
   inode_block = index / INODES_PER_BLOCK;
@@ -163,7 +167,9 @@ static void write_inode(inode_index index, const struct minix2_inode *inode) {
 static void extend_zone(struct minix2_inode *inode, size_t size) {
   block_index block, start, end;
   block_index z0, z1, z2;
-  uint32_t zones[ZONES_PER_BLOCK];
+
+  _page_cleanup_ struct page *page = buddy_alloc(BLOCK_SIZE);
+  uint32_t *zones = page_address(page);
 
   start = (inode->i_size / BLOCK_SIZE) + 1;
   end = (size / BLOCK_SIZE) + 1;
@@ -241,7 +247,11 @@ fail:
 static void shrink_zone(struct minix2_inode *inode, size_t size) {
   block_index block, start, end;
   block_index z0, z1, z2, z3, z4;
-  uint32_t zones0[ZONES_PER_BLOCK], zones1[ZONES_PER_BLOCK];
+
+  _page_cleanup_ struct page *page0 = buddy_alloc(BLOCK_SIZE);
+  _page_cleanup_ struct page *page1 = buddy_alloc(BLOCK_SIZE);
+
+  uint32_t *zones0 = page_address(page0), *zones1 = page_address(page1);
 
   start = inode->i_size / BLOCK_SIZE;
   end = size / BLOCK_SIZE;
@@ -325,8 +335,10 @@ static void shrink_zone(struct minix2_inode *inode, size_t size) {
 
 static block_index get_block(struct inode *inode, block_index block) {
   block_index z0, z1, z2;
-  uint32_t zones[ZONES_PER_BLOCK];
   struct minix2_inode minix_inode;
+
+  _page_cleanup_ struct page *page = buddy_alloc(BLOCK_SIZE);
+  uint32_t *zones = page_address(page);
 
   read_inode(inode->index, &minix_inode);
 
