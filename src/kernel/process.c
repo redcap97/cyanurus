@@ -61,7 +61,7 @@ limitations under the License.
 #define FILE_STATUS_FLAGS (O_APPEND|O_ASYNC|O_DIRECT|O_DSYNC|O_NOATIME|O_NONBLOCK|O_SYNC)
 #define PIPE2_FLAGS (O_CLOEXEC|O_DIRECT|O_NONBLOCK)
 
-#define KERNEL_STACK_SIZE (PAGE_SIZE * 8)
+#define KERNEL_STACK_SIZE (PAGE_SIZE * 4)
 
 struct segment {
   uint8_t *start;
