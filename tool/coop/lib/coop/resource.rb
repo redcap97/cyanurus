@@ -23,9 +23,7 @@ class Coop::Resource
   attr_reader :dir
 
   def self.create
-    new.tap do |resource|
-      resource.prepare
-    end
+    new.tap(&:prepare)
   end
 
   def initialize
@@ -44,7 +42,7 @@ class Coop::Resource
     options = {out: '/dev/null'}
 
     system('qemu-img', 'create', '-f', 'raw', disk, '64M', options)
-    system('mkfs.minix', '-3', disk, options)
+    system('mkfs.mfs', '-B', '4096', disk, options)
   end
 
   def release

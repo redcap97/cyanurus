@@ -19,14 +19,35 @@ limitations under the License.
 #include "fs/superblock.h"
 #include "lib/string.h"
 #include "fs/block.h"
+#include "logger.h"
+#include "system.h"
+#include "buddy.h"
 
-#define SUPERBLOCK_ZONE_INDEX 1
+#define SUPERBLOCK_ADDRESS 0x400
 
 struct minix3_superblock superblock;
 
 void fs_superblock_init(void) {
-  char buf[BLOCK_SIZE];
+  _page_cleanup_ struct page *page = buddy_alloc(BLOCK_SIZE);
+  char *buf = page_address(page);
 
-  fs_block_read(SUPERBLOCK_ZONE_INDEX, buf);
-  memcpy(&superblock, buf, sizeof(struct minix3_superblock));
+  SYSTEM_BUG_ON((SUPERBLOCK_ADDRESS + sizeof(struct minix3_superblock)) > BLOCK_SIZE);
+
+  fs_block_read(0, buf);
+  memcpy(&superblock, buf + SUPERBLOCK_ADDRESS, sizeof(struct minix3_superblock));
+
+  if (superblock.s_magic != SUPER_MAGIC_V3) {
+    logger_fatal("invalid magic bytes: 0x%x", (uint32_t)superblock.s_magic);
+    system_halt();
+  }
+
+  if (superblock.s_log_zone_size) {
+    logger_fatal("blocks per zone must be zero: 0x%x", (uint32_t)superblock.s_log_zone_size);
+    system_halt();
+  }
+
+  if (superblock.s_blocksize != BLOCK_SIZE) {
+    logger_fatal("block size must be 4096: 0x%x", (uint32_t)superblock.s_blocksize);
+    system_halt();
+  }
 }

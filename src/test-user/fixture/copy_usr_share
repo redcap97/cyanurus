@@ -17,9 +17,9 @@
 set -e
 
 mkdir -p disk
-sudo mount disk.img disk
+${ROOT_PATH}/tool/mount disk.img disk
 
 mkdir -p disk/usr/share
 cp -r ${SOURCE_PATH}/share/* disk/usr/share
 
-sudo umount disk
+${ROOT_PATH}/tool/umount disk

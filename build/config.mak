@@ -1,10 +1,5 @@
 ARCH = arm-none-eabi
 
-QEMU     = qemu-system-arm
-QEMU_IMG = qemu-img
-
-MKFS.MINIX = mkfs.minix
-
 ifdef USE_CLANG
 	CC = clang -integrated-as
 	AS = clang -integrated-as

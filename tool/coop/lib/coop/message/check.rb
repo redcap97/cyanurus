@@ -20,7 +20,8 @@ require 'open3'
 
 class Coop::Message::Check
   def initialize(app, session)
-    @src_path = app.src_path
+    @root_path = app.root_path
+    @source_path = app.source_path
     @resource = session.resource
     @stats    = app.stats
   end
@@ -35,10 +36,11 @@ class Coop::Message::Check
     env = {
       'TEST_NAME'   => test,
       'BUILD_PATH'  => Dir.getwd,
-      'SOURCE_PATH' => File.expand_path(@src_path),
+      'ROOT_PATH'   => @root_path,
+      'SOURCE_PATH' => @source_path,
     }
 
-    command = File.expand_path(File.join(@src_path, 'check', name))
+    command = File.join(@source_path, 'check', name)
 
     Dir.chdir(@resource.dir) do
       stdin_data = output.body.gsub(/\r?\n/, "\n")

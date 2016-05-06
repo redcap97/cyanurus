@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Copyright 2014 Akira Midorikawa
+# Copyright 2016 Akira Midorikawa
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,11 +16,8 @@
 
 set -e
 
-mkdir -p disk
-${ROOT_PATH}/tool/mount disk.img disk
-
-mkdir -p disk/sbin
-cp $BUILD_PATH/unistd_fcntl_F_SETFD disk/sbin
-cp $BUILD_PATH/unistd_fcntl_F_SETFD_new disk/sbin
-
-${ROOT_PATH}/tool/umount disk
+if type fusermount >/dev/null 2>&1 ; then
+  exec fusermount -u "$@"
+else
+  exec umount "$@"
+fi

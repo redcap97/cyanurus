@@ -19,12 +19,12 @@ set -e
 EXPECTED="${SOURCE_PATH}/share/alice.txt"
 
 fail() {
-  sudo umount disk
+  ${ROOT_PATH}/tool/umount disk
   exit 1
 }
 
 mkdir -p disk
-sudo mount disk.img disk
+${ROOT_PATH}/tool/mount disk.img disk
 
 diff -u disk/tmp/alice.txt ${EXPECTED} 1>&2 || fail
-sudo umount disk
+${ROOT_PATH}/tool/umount disk

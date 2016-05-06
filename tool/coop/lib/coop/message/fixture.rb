@@ -18,7 +18,8 @@ limitations under the License.
 
 class Coop::Message::Fixture
   def initialize(app, session)
-    @src_path = app.src_path
+    @root_path = app.root_path
+    @source_path = app.source_path
     @resource = session.resource
   end
 
@@ -30,10 +31,11 @@ class Coop::Message::Fixture
     env = {
       'TEST_NAME'   => test,
       'BUILD_PATH'  => Dir.getwd,
-      'SOURCE_PATH' => File.expand_path(@src_path),
+      'ROOT_PATH'   => @root_path,
+      'SOURCE_PATH' => @source_path,
     }
 
-    command = File.expand_path(File.join(@src_path, 'fixture', name))
+    command = File.join(@source_path, 'fixture', name)
 
     Dir.chdir(@resource.dir) do
       raise Coop::FixtureError, "fixture error: #{command}" unless system(env, command)

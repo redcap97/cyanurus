@@ -20,6 +20,7 @@ limitations under the License.
 #include "lib/type.h"
 
 #define NAME_MAX 60
+#define SUPER_MAGIC_V3 0x4d5a
 
 struct minix3_superblock {
   uint32_t s_ninodes;

@@ -22,6 +22,7 @@ limitations under the License.
 #include "slab.h"
 #include "logger.h"
 #include "system.h"
+#include "buddy.h"
 
 #define IMAP_BLOCKS     (superblock.s_imap_blocks)
 #define ZMAP_BLOCKS     (superblock.s_zmap_blocks)
@@ -61,9 +62,11 @@ static void release_inode(struct inode *inode) {
 
 static uint32_t mark_map(block_index start, block_index end) {
   int i, b;
-  uint8_t buf[BLOCK_SIZE];
   uint32_t index;
   block_index block;
+
+  _page_cleanup_ struct page *page = buddy_alloc(BLOCK_SIZE);
+  uint8_t *buf = page_address(page);
 
   for (block = start, index = 0; block < end; ++block) {
     fs_block_read(block, buf);
@@ -88,8 +91,10 @@ static uint32_t mark_map(block_index start, block_index end) {
 }
 
 static void unmark_map(uint32_t index, block_index start) {
-  uint8_t buf[BLOCK_SIZE];
   block_index block = start + ((index / 8) / BLOCK_SIZE);
+
+  _page_cleanup_ struct page *page = buddy_alloc(BLOCK_SIZE);
+  uint8_t *buf = page_address(page);
 
   fs_block_read(block, buf);
 
@@ -132,8 +137,10 @@ static void unmark_zmap(block_index index) {
 }
 
 static void read_inode(inode_index index, struct minix2_inode *inode) {
-  struct minix2_inode inodes[INODES_PER_BLOCK];
   block_index inode_block;
+
+  _page_cleanup_ struct page *page = buddy_alloc(BLOCK_SIZE);
+  struct minix2_inode *inodes = page_address(page);
 
   index--;
   inode_block = index / INODES_PER_BLOCK;
@@ -143,8 +150,10 @@ static void read_inode(inode_index index, struct minix2_inode *inode) {
 }
 
 static void write_inode(inode_index index, const struct minix2_inode *inode) {
-  struct minix2_inode inodes[INODES_PER_BLOCK];
   block_index inode_block;
+
+  _page_cleanup_ struct page *page = buddy_alloc(BLOCK_SIZE);
+  struct minix2_inode *inodes = page_address(page);
 
   index--;
   inode_block = index / INODES_PER_BLOCK;
@@ -158,7 +167,9 @@ static void write_inode(inode_index index, const struct minix2_inode *inode) {
 static void extend_zone(struct minix2_inode *inode, size_t size) {
   block_index block, start, end;
   block_index z0, z1, z2;
-  uint32_t zones[ZONES_PER_BLOCK];
+
+  _page_cleanup_ struct page *page = buddy_alloc(BLOCK_SIZE);
+  uint32_t *zones = page_address(page);
 
   start = (inode->i_size / BLOCK_SIZE) + 1;
   end = (size / BLOCK_SIZE) + 1;
@@ -236,7 +247,11 @@ fail:
 static void shrink_zone(struct minix2_inode *inode, size_t size) {
   block_index block, start, end;
   block_index z0, z1, z2, z3, z4;
-  uint32_t zones0[ZONES_PER_BLOCK], zones1[ZONES_PER_BLOCK];
+
+  _page_cleanup_ struct page *page0 = buddy_alloc(BLOCK_SIZE);
+  _page_cleanup_ struct page *page1 = buddy_alloc(BLOCK_SIZE);
+
+  uint32_t *zones0 = page_address(page0), *zones1 = page_address(page1);
 
   start = inode->i_size / BLOCK_SIZE;
   end = size / BLOCK_SIZE;
@@ -320,8 +335,10 @@ static void shrink_zone(struct minix2_inode *inode, size_t size) {
 
 static block_index get_block(struct inode *inode, block_index block) {
   block_index z0, z1, z2;
-  uint32_t zones[ZONES_PER_BLOCK];
   struct minix2_inode minix_inode;
+
+  _page_cleanup_ struct page *page = buddy_alloc(BLOCK_SIZE);
+  uint32_t *zones = page_address(page);
 
   read_inode(inode->index, &minix_inode);
 
@@ -424,8 +441,10 @@ int fs_inode_destroy(struct inode *inode) {
 void fs_inode_truncate(struct inode *inode, size_t size) {
   struct minix2_inode minix_inode;
   size_t tsize, tstart, toffset, tcopy;
-  char buf[BLOCK_SIZE];
   block_index ind_block;
+
+  _page_cleanup_ struct page *page = buddy_alloc(BLOCK_SIZE);
+  char *buf = page_address(page);
 
   if (size != inode->size) {
     read_inode(inode->index, &minix_inode);
@@ -487,9 +506,12 @@ void fs_inode_set(struct inode *inode) {
 
 ssize_t fs_inode_write(struct inode *inode, size_t size, size_t start, const void *data) {
   block_index ind_zone, ind_block, ind_start, ind_end;
-  char buf[BLOCK_SIZE];
+
   const char *cur_data = data;
   size_t offset, copy, cur_size = size, cur_start = start;
+
+  _page_cleanup_ struct page *page = buddy_alloc(BLOCK_SIZE);
+  char *buf = page_address(page);
 
   ind_start = start / BLOCK_SIZE;
   ind_end   = (start + size) / BLOCK_SIZE;
@@ -522,8 +544,10 @@ ssize_t fs_inode_write(struct inode *inode, size_t size, size_t start, const voi
 
 ssize_t fs_inode_read(struct inode *inode, size_t size, size_t start, void *data) {
   block_index ind_zone, ind_block, ind_start, ind_end;
-  char buf[BLOCK_SIZE], *cur_data = data;
   size_t offset, copy, cur_size, cur_start;
+
+  _page_cleanup_ struct page *page = buddy_alloc(BLOCK_SIZE);
+  char *buf = page_address(page), *cur_data = data;
 
   if (inode->size <= start) {
     return 0;

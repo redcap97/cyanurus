@@ -17,14 +17,14 @@
 set -e
 
 fail() {
-  sudo umount disk
+  ${ROOT_PATH}/tool/umount disk
   exit 1
 }
 
 mkdir -p disk
-sudo mount disk.img disk
+${ROOT_PATH}/tool/mount disk.img disk
 
 test -d disk/tmp  || fail
 test -d disk/sbin || fail
 
-sudo umount disk
+${ROOT_PATH}/tool/umount disk

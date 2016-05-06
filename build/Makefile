@@ -1,3 +1,4 @@
+ROOT_DIR = ..
 include config.mak
 
 KERNEL     = kernel/cyanurus.elf
@@ -5,6 +6,13 @@ INIT       = init/init
 DISK_IMAGE = disk.img
 MOUNT_DIR  = $(basename $(DISK_IMAGE))
 QEMUFLAGS  = -M vexpress-a9 -m 1G -nographic -drive if=sd,file=$(DISK_IMAGE),format=raw
+
+QEMU     = qemu-system-arm
+QEMU_IMG = qemu-img
+
+MKFS   = mkfs.mfs
+MOUNT  = $(ROOT_DIR)/tool/mount
+UMOUNT = $(ROOT_DIR)/tool/umount
 
 .PHONY: all clean clobber test copy run pty debug-run debug-pty
 
@@ -51,14 +59,14 @@ test: all
 
 copy: all $(DISK_IMAGE)
 	mkdir -p $(MOUNT_DIR)
-	sudo mount $(DISK_IMAGE) $(MOUNT_DIR)
+	$(MOUNT) $(DISK_IMAGE) $(MOUNT_DIR)
 	mkdir -p $(MOUNT_DIR)/sbin
 	cp $(INIT) $(MOUNT_DIR)/sbin/init
-	sudo umount $(MOUNT_DIR)
+	$(UMOUNT) $(MOUNT_DIR)
 
 $(DISK_IMAGE):
 	$(QEMU_IMG) create -f raw $@ 64M
-	$(MKFS.MINIX) -3 $@
+	$(MKFS) -B 4096 $@
 
 pty:       QEMUFLAGS += -serial pty
 debug-run: QEMUFLAGS += -s -S

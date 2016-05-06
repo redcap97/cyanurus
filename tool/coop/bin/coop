@@ -23,10 +23,11 @@ require 'coop'
 
 options = {}
 opt = OptionParser.new
-opt.on('-s src') {|v| options[:src] = v }
+opt.on('--root PATH') {|v| options[:root_path] = v }
+opt.on('--source PATH') {|v| options[:source_path] = v }
 args = opt.parse!(ARGV)
 
-app = Coop::Application.new(options[:src] || '.')
+app = Coop::Application.new(options)
 
 case args[0]
 when 'run'
@@ -36,7 +37,7 @@ when 'list_entry_files'
 when 'dump_entries'
   app.dump_entries
 else
-  STDOUT.puts "USAGE: #{$0} [-s src] <command>"
+  STDOUT.puts "USAGE: #{$0} [--root PATH] [--source PATH] <command>"
   exit(1)
 end
 
