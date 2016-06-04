@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+set -exu
+
+sudo apt-get install -y pkg-config fuse
+sudo modprobe fuse
+sudo chmod 666 /dev/fuse
+sudo chown root:$USER /etc/fuse.conf
