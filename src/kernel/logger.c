@@ -23,7 +23,7 @@ limitations under the License.
 static int logger_write(enum logger_level level, const char *format, va_list ap) {
   char str[128];
 
-  if (level < CYANURUS_LOGGER_LEVEL) {
+  if ((volatile enum logger_level)level < CYANURUS_LOGGER_LEVEL) {
     return 0;
   }
 
