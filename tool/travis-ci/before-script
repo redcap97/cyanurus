@@ -11,7 +11,7 @@ FUSE_MFS_FILENAME="fuse-mfs_0.4-d25f058_amd64.deb"
 FUSE_MFS_URL="https://github.com/redcap97/fuse-mfs/releases/download/v${FUSE_MFS_VERSION}/${FUSE_MFS_FILENAME}"
 
 wget ${RUBY_URL}
-sudo tar jxf --strip=1 -C /usr ${RUBY_FILENAME}
+sudo tar jxf ${RUBY_FILENAME} --strip-components=1 -C /usr
 
 wget ${FUSE_MFS_URL}
 sudo dpkg -i ${FUSE_MFS_FILENAME}
