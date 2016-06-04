@@ -17,7 +17,7 @@ FUSE_MFS_URL="https://github.com/redcap97/fuse-mfs/releases/download/v${FUSE_MFS
 wget ${QEMU_URL}
 tar jxf ${QEMU_FILENAME}
 pushd $(basename ${QEMU_FILENAME} .tar.bz2)
-CC=gcc ./configure --target-list=arm-softmmu,arm-linux-user
+./configure --target-list=arm-softmmu,arm-linux-user
 make -j4
 sudo make install
 popd
