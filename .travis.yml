@@ -1,0 +1,12 @@
+language: c
+dist: trusty
+sudo: required
+
+before_install:
+  - tool/travis-ci/before-install
+
+before_script:
+  - tool/travis-ci/before-script
+
+script:
+  - tool/travis-ci/build

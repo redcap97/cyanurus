@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+set -exu
+
+RUBY_VERSION="2.3.1"
+RUBY_FILENAME="ruby-${RUBY_VERSION}.tar.bz2"
+RUBY_URL="https://s3.amazonaws.com/travis-rubies/binaries/ubuntu/14.04/x86_64/${RUBY_FILENAME}"
+
+FUSE_MFS_VERSION="0.4"
+FUSE_MFS_FILENAME="fuse-mfs_0.4-d25f058_amd64.deb"
+FUSE_MFS_URL="https://github.com/redcap97/fuse-mfs/releases/download/v${FUSE_MFS_VERSION}/${FUSE_MFS_FILENAME}"
+
+wget ${RUBY_URL}
+sudo tar jxf --strip=1 -C /usr ${RUBY_FILENAME}
+
+wget ${FUSE_MFS_URL}
+sudo dpkg -i ${FUSE_MFS_FILENAME}
+
+sudo apt-get install -y gcc-arm-none-eabi binutils-arm-none-eabi qemu-utils qemu-system-arm

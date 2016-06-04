@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+set -exu
+
+make -j4
+make test
