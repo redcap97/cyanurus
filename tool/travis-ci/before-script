@@ -4,7 +4,7 @@ set -exu
 
 RUBY_VERSION="2.3.1"
 RUBY_FILENAME="ruby-${RUBY_VERSION}.tar.bz2"
-RUBY_URL="https://s3.amazonaws.com/travis-rubies/binaries/ubuntu/14.04/x86_64/${RUBY_FILENAME}"
+RUBY_URL="https://rubies.travis-ci.org/ubuntu/14.04/x86_64/${RUBY_FILENAME}"
 
 FUSE_MFS_VERSION="0.4"
 FUSE_MFS_FILENAME="fuse-mfs_0.4-d25f058_amd64.deb"
