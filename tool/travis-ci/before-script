@@ -28,4 +28,4 @@ sudo tar jxf ${RUBY_FILENAME} --strip-components=1 -C /usr
 wget ${FUSE_MFS_URL}
 sudo dpkg -i ${FUSE_MFS_FILENAME}
 
-sudo apt-get install -y gcc-arm-none-eabi binutils-arm-none-eabi qemu-utils qemu-system-arm
+sudo apt-get install -y gcc-arm-none-eabi binutils-arm-none-eabi
