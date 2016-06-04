@@ -1,5 +1,7 @@
 # Cyanurus
 
+[![Build Status](https://travis-ci.org/redcap97/cyanurus.svg?branch=master)](https://travis-ci.org/redcap97/cyanurus)
+
 Cyanurus is a Unix-like operating system for ARMv7-A.
 
 ![Screen Capture](https://cloud.githubusercontent.com/assets/928237/11782406/3c520650-a2b4-11e5-917e-372b7f7cb689.gif)
