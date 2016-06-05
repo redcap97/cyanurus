@@ -34,9 +34,9 @@ struct dentry {
   struct list sibling;
 };
 
-void fs_dentry_init(void);
-struct dentry *fs_dentry_lookup(const char *path);
-int fs_dentry_link(struct dentry *dentry, const char *path, struct inode *inode);
-int fs_dentry_unlink(struct dentry *dentry);
+void dentry_init(void);
+struct dentry *dentry_lookup(const char *path);
+int dentry_link(struct dentry *dentry, const char *path, struct inode *inode);
+int dentry_unlink(struct dentry *dentry);
 
 #endif

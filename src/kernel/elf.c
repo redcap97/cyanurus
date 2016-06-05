@@ -146,7 +146,7 @@ int elf_load(const char *path, struct elf_executable *executable) {
   struct elf_header header;
   struct elf_program_header program_header;
 
-  if (!(dentry = fs_dentry_lookup(path))) {
+  if (!(dentry = dentry_lookup(path))) {
     return -1;
   }
 

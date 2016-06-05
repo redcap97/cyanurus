@@ -240,22 +240,22 @@ static int destroy_dentry(struct dentry *dentry) {
   return 0;
 }
 
-void fs_dentry_init(void) {
+void dentry_init(void) {
   dentry_cache = slab_cache_create("dentry", sizeof(struct dentry));
   root_dentry = alloc_dentry(NULL, fs_inode_get(1), "");
 }
 
-struct dentry *fs_dentry_lookup(const char *path) {
+struct dentry *dentry_lookup(const char *path) {
   if (strnlen(path, PATH_MAX) == PATH_MAX) {
     return NULL;
   }
   return lookup_dentry(path);
 }
 
-int fs_dentry_link(struct dentry *dentry, const char *path, struct inode *inode) {
+int dentry_link(struct dentry *dentry, const char *path, struct inode *inode) {
   return create_dentry(dentry, path, inode);
 }
 
-int fs_dentry_unlink(struct dentry *dentry) {
+int dentry_unlink(struct dentry *dentry) {
   return destroy_dentry(dentry);
 }

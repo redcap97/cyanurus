@@ -936,7 +936,7 @@ int process_open(const char *path, int flags, mode_t mode) {
     }
   }
 
-  if (!(dentry = fs_dentry_lookup(path))) {
+  if (!(dentry = dentry_lookup(path))) {
     process_close(fd);
     return -ENOENT;
   }
