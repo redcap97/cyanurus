@@ -27,7 +27,7 @@ limitations under the License.
 
 struct minix3_superblock superblock;
 
-void fs_superblock_init(void) {
+void superblock_init(void) {
   _page_cleanup_ struct page *page = buddy_alloc(BLOCK_SIZE);
   char *buf = page_address(page);
 

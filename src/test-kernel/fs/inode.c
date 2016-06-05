@@ -27,7 +27,7 @@ static void setup(void) {
   page_init();
 
   block_init();
-  fs_superblock_init();
+  superblock_init();
   fs_inode_init();
 }
 

@@ -17,4 +17,4 @@ limitations under the License.
 /*
 $shutdown
 */
-TEST(test_fs_superblock_init);
+TEST(test_superblock_init);

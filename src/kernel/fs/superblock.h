@@ -20,6 +20,6 @@ limitations under the License.
 #include "fs/minix.h"
 
 extern struct minix3_superblock superblock;
-void fs_superblock_init(void);
+void superblock_init(void);
 
 #endif

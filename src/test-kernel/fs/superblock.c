@@ -25,10 +25,10 @@ limitations under the License.
 static void setup(void) {
   page_init();
   block_init();
-  fs_superblock_init();
+  superblock_init();
 }
 
-TEST(test_fs_superblock_init) {
+TEST(test_superblock_init) {
   setup();
 
   TEST_ASSERT(superblock.s_ninodes       > 0);

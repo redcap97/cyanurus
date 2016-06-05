@@ -36,7 +36,7 @@ static void remove_dentry_and_children(struct dentry *dentry) {
 
 void fs_init(void) {
   block_init();
-  fs_superblock_init();
+  superblock_init();
   fs_inode_init();
   dentry_init();
 }
