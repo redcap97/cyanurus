@@ -14,10 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include <fs/superblock.c>
+#include <superblock.c>
 
 #include "test.h"
-#include "fs/superblock.t"
+#include "superblock.t"
 
 #include "page.h"
 #include "logger.h"

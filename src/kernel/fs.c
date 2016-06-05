@@ -18,10 +18,10 @@ limitations under the License.
 #include "lib/string.h"
 #include "lib/libgen.h"
 #include "lib/errno.h"
-#include "fs/block.h"
-#include "fs/superblock.h"
-#include "fs/inode.h"
-#include "fs/dentry.h"
+#include "block.h"
+#include "superblock.h"
+#include "inode.h"
+#include "dentry.h"
 #include "buddy.h"
 
 static void remove_dentry_and_children(struct dentry *dentry) {

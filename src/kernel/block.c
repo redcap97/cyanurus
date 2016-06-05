@@ -16,7 +16,7 @@ limitations under the License.
 
 /* FIXME: error handling is broken */
 
-#include "fs/block.h"
+#include "block.h"
 #include "lib/string.h"
 #include "lib/list.h"
 #include "buddy.h"

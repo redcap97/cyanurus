@@ -14,12 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include <fs/dentry.c>
+#include <dentry.c>
 
 #include "test.h"
-#include "fs/dentry.t"
+#include "dentry.t"
 
-#include "fs/superblock.h"
+#include "superblock.h"
 #include "page.h"
 
 static void setup(void) {

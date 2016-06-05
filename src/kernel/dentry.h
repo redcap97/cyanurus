@@ -17,7 +17,7 @@ limitations under the License.
 #ifndef _CYANURUS_FS_DENTRY_H_
 #define _CYANURUS_FS_DENTRY_H_
 
-#include "fs/inode.h"
+#include "inode.h"
 #include "minix.h"
 #include "lib/list.h"
 

@@ -30,8 +30,8 @@ limitations under the License.
 #include "buddy.h"
 #include "logger.h"
 #include "fs.h"
-#include "fs/dentry.h"
-#include "fs/inode.h"
+#include "dentry.h"
+#include "inode.h"
 #include "file.h"
 #include "user.h"
 

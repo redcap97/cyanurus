@@ -16,9 +16,9 @@ limitations under the License.
 
 /* FIXME: error handling is broken */
 
-#include "fs/superblock.h"
+#include "superblock.h"
 #include "lib/string.h"
-#include "fs/block.h"
+#include "block.h"
 #include "logger.h"
 #include "system.h"
 #include "buddy.h"

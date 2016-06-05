@@ -14,10 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include <fs/inode.c>
+#include <inode.c>
 
 #include "test.h"
-#include "fs/inode.t"
+#include "inode.t"
 
 #include "lib/type.h"
 #include "page.h"

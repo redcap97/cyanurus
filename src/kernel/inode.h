@@ -19,7 +19,7 @@ limitations under the License.
 
 #include "lib/type.h"
 #include "lib/list.h"
-#include "fs/block.h"
+#include "block.h"
 
 #define S_ISREG(m)  (m & S_IFREG)
 #define S_ISDIR(m)  (m & S_IFDIR)

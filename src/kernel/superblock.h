@@ -17,7 +17,7 @@ limitations under the License.
 #ifndef _CYANURUS_FS_SUPERBLOCK_H_
 #define _CYANURUS_FS_SUPERBLOCK_H_
 
-#include "fs/minix.h"
+#include "minix.h"
 
 extern struct minix3_superblock superblock;
 void superblock_init(void);

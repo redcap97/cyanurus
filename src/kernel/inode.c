@@ -16,8 +16,8 @@ limitations under the License.
 
 /* FIXME: error handling is broken */
 
-#include "fs/inode.h"
-#include "fs/superblock.h"
+#include "inode.h"
+#include "superblock.h"
 #include "lib/string.h"
 #include "slab.h"
 #include "logger.h"

@@ -14,10 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include <fs/block.c>
+#include <block.c>
 
 #include "test.h"
-#include "fs/block.t"
+#include "block.t"
 
 static void setup(void) {
   page_init();

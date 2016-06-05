@@ -16,7 +16,7 @@ limitations under the License.
 
 /* FIXME: error handling is broken */
 
-#include "fs/dentry.h"
+#include "dentry.h"
 #include "lib/string.h"
 #include "slab.h"
 #include "logger.h"

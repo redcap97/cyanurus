@@ -21,7 +21,7 @@ limitations under the License.
 #include "lib/type.h"
 #include "lib/unix.h"
 #include "fs.h"
-#include "fs/dentry.h"
+#include "dentry.h"
 #include "logger.h"
 #include "lib/string.h"
 #include "lib/errno.h"
