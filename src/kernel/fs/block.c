@@ -105,7 +105,7 @@ void block_read(block_index index, void *data) {
   memcpy(data, block->data, BLOCK_SIZE);
 }
 
-void fs_block_write(block_index index, const void *data) {
+void block_write(block_index index, const void *data) {
   struct block *block = get_block(index);
   memcpy(block->data, data, BLOCK_SIZE);
   mmc_write(index * BLOCK_SIZE, BLOCK_SIZE, block->data);

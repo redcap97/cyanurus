@@ -25,6 +25,6 @@ typedef uint16_t block_index;
 
 void block_init(void);
 void block_read(block_index index, void *data);
-void fs_block_write(block_index index, const void *data);
+void block_write(block_index index, const void *data);
 
 #endif

@@ -50,7 +50,7 @@ TEST(test_block_read) {
   }
 }
 
-TEST(test_fs_block_write) {
+TEST(test_block_write) {
   int i;
   char buf[BLOCK_SIZE];
   setup();
@@ -64,7 +64,7 @@ TEST(test_fs_block_write) {
     }
 
     memset(buf, 0xff, BLOCK_SIZE);
-    fs_block_write(i, buf);
+    block_write(i, buf);
 
     TEST_ASSERT(list_length(&used_blocks) == i);
 

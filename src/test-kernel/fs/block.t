@@ -22,4 +22,4 @@ TEST(test_block_read);
 /*
 $shutdown
 */
-TEST(test_fs_block_write);
+TEST(test_block_write);
