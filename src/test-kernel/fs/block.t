@@ -17,7 +17,7 @@ limitations under the License.
 /*
 $shutdown
 */
-TEST(test_fs_block_read);
+TEST(test_block_read);
 
 /*
 $shutdown

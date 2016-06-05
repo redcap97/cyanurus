@@ -100,7 +100,7 @@ void block_init(void) {
   list_init(&free_blocks);
 }
 
-void fs_block_read(block_index index, void *data) {
+void block_read(block_index index, void *data) {
   struct block *block = get_block(index);
   memcpy(data, block->data, BLOCK_SIZE);
 }

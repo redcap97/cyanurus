@@ -33,7 +33,7 @@ void fs_superblock_init(void) {
 
   SYSTEM_BUG_ON((SUPERBLOCK_ADDRESS + sizeof(struct minix3_superblock)) > BLOCK_SIZE);
 
-  fs_block_read(0, buf);
+  block_read(0, buf);
   memcpy(&superblock, buf + SUPERBLOCK_ADDRESS, sizeof(struct minix3_superblock));
 
   if (superblock.s_magic != SUPER_MAGIC_V3) {

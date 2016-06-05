@@ -69,7 +69,7 @@ static uint32_t mark_map(block_index start, block_index end) {
   uint8_t *buf = page_address(page);
 
   for (block = start, index = 0; block < end; ++block) {
-    fs_block_read(block, buf);
+    block_read(block, buf);
 
     for(i = 0; i < BLOCK_SIZE; ++i) {
       if (buf[i] == 0xffL) {
@@ -96,7 +96,7 @@ static void unmark_map(uint32_t index, block_index start) {
   _page_cleanup_ struct page *page = buddy_alloc(BLOCK_SIZE);
   uint8_t *buf = page_address(page);
 
-  fs_block_read(block, buf);
+  block_read(block, buf);
 
   buf[(index / 8) % BLOCK_SIZE] &= ~(1 << (index % 8));
   fs_block_write(block, buf);
@@ -145,7 +145,7 @@ static void read_inode(inode_index index, struct minix2_inode *inode) {
   index--;
   inode_block = index / INODES_PER_BLOCK;
 
-  fs_block_read(INODE_ZONE_INDEX + inode_block, inodes);
+  block_read(INODE_ZONE_INDEX + inode_block, inodes);
   memcpy(inode, inodes + (index % INODES_PER_BLOCK), sizeof(struct minix2_inode));
 }
 
@@ -158,7 +158,7 @@ static void write_inode(inode_index index, const struct minix2_inode *inode) {
   index--;
   inode_block = index / INODES_PER_BLOCK;
 
-  fs_block_read(INODE_ZONE_INDEX + inode_block, inodes);
+  block_read(INODE_ZONE_INDEX + inode_block, inodes);
   memcpy(inodes + (index % INODES_PER_BLOCK), inode, sizeof(struct minix2_inode));
 
   fs_block_write(INODE_ZONE_INDEX + inode_block, inodes);
@@ -209,7 +209,7 @@ static void extend_zone(struct minix2_inode *inode, size_t size) {
         continue;
     }
 
-    fs_block_read(z1, zones);
+    block_read(z1, zones);
     if (!zones[z2]) {
       zones[z2] = mark_zmap();
       if (!zones[z2]) {
@@ -228,7 +228,7 @@ static void extend_zone(struct minix2_inode *inode, size_t size) {
         continue;
     }
 
-    fs_block_read(z1, zones);
+    block_read(z1, zones);
     if (!zones[z2]) {
       zones[z2] = mark_zmap();
       if (!zones[z2]) {
@@ -286,7 +286,7 @@ static void shrink_zone(struct minix2_inode *inode, size_t size) {
         continue;
     }
 
-    fs_block_read(z1, zones0);
+    block_read(z1, zones0);
     if (!zones0[z2]) {
       continue;
     }
@@ -309,7 +309,7 @@ static void shrink_zone(struct minix2_inode *inode, size_t size) {
         continue;
     }
 
-    fs_block_read(z3, zones1);
+    block_read(z3, zones1);
     if (!zones1[z4]) {
       continue;
     }
@@ -369,7 +369,7 @@ static block_index get_block(struct inode *inode, block_index block) {
       return minix_inode.i_zone[z0];
   }
 
-  fs_block_read(z1, zones);
+  block_read(z1, zones);
   if (!zones[z2]) {
     return 0;
   }
@@ -384,7 +384,7 @@ static block_index get_block(struct inode *inode, block_index block) {
       return zones[z2];
   }
 
-  fs_block_read(z1, zones);
+  block_read(z1, zones);
   if (!zones[z2]) {
     return 0;
   }
@@ -460,7 +460,7 @@ void fs_inode_truncate(struct inode *inode, size_t size) {
         tcopy = calculate_block_copy_size(tstart, tsize);
 
         ind_block = get_block(inode, tstart / BLOCK_SIZE);
-        fs_block_read(ind_block, buf);
+        block_read(ind_block, buf);
 
         memset(buf + toffset, 0, tcopy);
         fs_block_write(ind_block, buf);
@@ -529,7 +529,7 @@ ssize_t fs_inode_write(struct inode *inode, size_t size, size_t start, const voi
     }
 
     ind_block = get_block(inode, ind_zone);
-    fs_block_read(ind_block, buf);
+    block_read(ind_block, buf);
 
     memcpy(buf + offset, cur_data, copy);
     fs_block_write(ind_block, buf);
@@ -568,7 +568,7 @@ ssize_t fs_inode_read(struct inode *inode, size_t size, size_t start, void *data
     copy = calculate_block_copy_size(cur_start, cur_size);
 
     ind_block = get_block(inode, ind_zone);
-    fs_block_read(ind_block, buf);
+    block_read(ind_block, buf);
 
     memcpy(cur_data, buf + offset, copy);
 

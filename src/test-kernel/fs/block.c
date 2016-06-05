@@ -34,7 +34,7 @@ static void assert_pattern(int pat, char *start, char *end) {
   }
 }
 
-TEST(test_fs_block_read) {
+TEST(test_block_read) {
   int i;
   char buf[BLOCK_SIZE];
   setup();
@@ -42,10 +42,10 @@ TEST(test_fs_block_read) {
   TEST_ASSERT(list_length(&used_blocks) == 0);
 
   for (i = 1; i < 8; ++i) {
-    fs_block_read(i, buf);
+    block_read(i, buf);
     TEST_ASSERT(list_length(&used_blocks) == i);
 
-    fs_block_read(i, buf);
+    block_read(i, buf);
     TEST_ASSERT(list_length(&used_blocks) == i);
   }
 }
@@ -59,7 +59,7 @@ TEST(test_fs_block_write) {
 
   for (i = 1; i < 8; ++i) {
     if (i & 0x1) {
-      fs_block_read(i, buf);
+      block_read(i, buf);
       TEST_ASSERT(list_length(&used_blocks) == i);
     }
 
@@ -69,7 +69,7 @@ TEST(test_fs_block_write) {
     TEST_ASSERT(list_length(&used_blocks) == i);
 
     memset(buf, 0, BLOCK_SIZE);
-    fs_block_read(i, buf);
+    block_read(i, buf);
 
     TEST_ASSERT(list_length(&used_blocks) == i);
     assert_pattern(0xff, buf, buf + BLOCK_SIZE);
