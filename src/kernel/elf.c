@@ -18,8 +18,8 @@ limitations under the License.
 #include "lib/string.h"
 #include "lib/arithmetic.h"
 #include "fs.h"
-#include "fs/dentry.h"
-#include "fs/inode.h"
+#include "dentry.h"
+#include "inode.h"
 #include "buddy.h"
 #include "page.h"
 #include "user.h"
@@ -127,7 +127,7 @@ static int load_segment(struct elf_segment *segment, const struct elf_program_he
   }
 
   data = page_address(segment->page);
-  size = fs_inode_read(dentry->inode, segment->file_size, header->offset, data);
+  size = inode_read(dentry->inode, segment->file_size, header->offset, data);
 
   if (size < 0 || (uint32_t)size != segment->file_size) {
     goto fail;
@@ -146,11 +146,11 @@ int elf_load(const char *path, struct elf_executable *executable) {
   struct elf_header header;
   struct elf_program_header program_header;
 
-  if (!(dentry = fs_dentry_lookup(path))) {
+  if (!(dentry = dentry_lookup(path))) {
     return -1;
   }
 
-  rs = fs_inode_read(dentry->inode, sizeof(struct elf_header), 0, &header);
+  rs = inode_read(dentry->inode, sizeof(struct elf_header), 0, &header);
   if (rs != sizeof(struct elf_header)) {
     return -1;
   }
@@ -171,7 +171,7 @@ int elf_load(const char *path, struct elf_executable *executable) {
 
   for (i = 0; i < header.program_header_num; ++i) {
     offset = header.program_header_offset + (header.program_header_size * i);
-    rs = fs_inode_read(dentry->inode, sizeof(struct elf_program_header), offset, &program_header);
+    rs = inode_read(dentry->inode, sizeof(struct elf_program_header), offset, &program_header);
 
     if (rs != sizeof(struct elf_program_header)) {
       return -1;

@@ -16,7 +16,7 @@ limitations under the License.
 
 /* FIXME: error handling is broken */
 
-#include "fs/block.h"
+#include "block.h"
 #include "lib/string.h"
 #include "lib/list.h"
 #include "buddy.h"
@@ -91,7 +91,7 @@ static struct block *get_block(block_index index) {
   return block;
 }
 
-void fs_block_init(void) {
+void block_init(void) {
   mmc_init();
 
   block_cache = slab_cache_create("block", sizeof(struct block));
@@ -100,12 +100,12 @@ void fs_block_init(void) {
   list_init(&free_blocks);
 }
 
-void fs_block_read(block_index index, void *data) {
+void block_read(block_index index, void *data) {
   struct block *block = get_block(index);
   memcpy(data, block->data, BLOCK_SIZE);
 }
 
-void fs_block_write(block_index index, const void *data) {
+void block_write(block_index index, const void *data) {
   struct block *block = get_block(index);
   memcpy(block->data, data, BLOCK_SIZE);
   mmc_write(index * BLOCK_SIZE, BLOCK_SIZE, block->data);

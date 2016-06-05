@@ -14,12 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#ifndef _CYANURUS_FS_SUPERBLOCK_H_
-#define _CYANURUS_FS_SUPERBLOCK_H_
+#ifndef _CYANURUS_FS_BLOCK_H_
+#define _CYANURUS_FS_BLOCK_H_
 
-#include "fs/minix.h"
+#include "lib/type.h"
 
-extern struct minix3_superblock superblock;
-void fs_superblock_init(void);
+#define BLOCK_SIZE (1024*4)
+
+typedef uint16_t block_index;
+
+void block_init(void);
+void block_read(block_index index, void *data);
+void block_write(block_index index, const void *data);
 
 #endif

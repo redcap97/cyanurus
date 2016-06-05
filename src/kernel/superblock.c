@@ -16,9 +16,9 @@ limitations under the License.
 
 /* FIXME: error handling is broken */
 
-#include "fs/superblock.h"
+#include "superblock.h"
 #include "lib/string.h"
-#include "fs/block.h"
+#include "block.h"
 #include "logger.h"
 #include "system.h"
 #include "buddy.h"
@@ -27,13 +27,13 @@ limitations under the License.
 
 struct minix3_superblock superblock;
 
-void fs_superblock_init(void) {
+void superblock_init(void) {
   _page_cleanup_ struct page *page = buddy_alloc(BLOCK_SIZE);
   char *buf = page_address(page);
 
   SYSTEM_BUG_ON((SUPERBLOCK_ADDRESS + sizeof(struct minix3_superblock)) > BLOCK_SIZE);
 
-  fs_block_read(0, buf);
+  block_read(0, buf);
   memcpy(&superblock, buf + SUPERBLOCK_ADDRESS, sizeof(struct minix3_superblock));
 
   if (superblock.s_magic != SUPER_MAGIC_V3) {

@@ -18,27 +18,27 @@ limitations under the License.
 #include "lib/string.h"
 #include "lib/libgen.h"
 #include "lib/errno.h"
-#include "fs/block.h"
-#include "fs/superblock.h"
-#include "fs/inode.h"
-#include "fs/dentry.h"
+#include "block.h"
+#include "superblock.h"
+#include "inode.h"
+#include "dentry.h"
 #include "buddy.h"
 
 static void remove_dentry_and_children(struct dentry *dentry) {
   struct dentry *child, *temp;
 
   list_foreach_safe(child, temp, &dentry->children, sibling) {
-    fs_dentry_unlink(child);
+    dentry_unlink(child);
   }
 
-  fs_dentry_unlink(dentry);
+  dentry_unlink(dentry);
 }
 
 void fs_init(void) {
-  fs_block_init();
-  fs_superblock_init();
-  fs_inode_init();
-  fs_dentry_init();
+  block_init();
+  superblock_init();
+  inode_init();
+  dentry_init();
 }
 
 int fs_create(const char *path, int flags, mode_t mode) {
@@ -53,22 +53,22 @@ int fs_create(const char *path, int flags, mode_t mode) {
     return -ENAMETOOLONG;
   }
 
-  if ((dentry = fs_dentry_lookup(path))) {
+  if ((dentry = dentry_lookup(path))) {
     return (flags & O_EXCL) ? -EEXIST : 0;
   }
 
   strcpy(buf, path);
-  if (!(dentry = fs_dentry_lookup(dirname(buf)))) {
+  if (!(dentry = dentry_lookup(dirname(buf)))) {
     return -EEXIST;
   }
 
-  if (!(inode = fs_inode_create((mode & 0777) | S_IFREG))) {
+  if (!(inode = inode_create((mode & 0777) | S_IFREG))) {
     errno = -ENOSPC;
     goto fail;
   }
 
   strcpy(buf, path);
-  if ((errno = fs_dentry_link(dentry, basename(buf), inode)) < 0) {
+  if ((errno = dentry_link(dentry, basename(buf), inode)) < 0) {
     goto fail;
   }
 
@@ -76,7 +76,7 @@ int fs_create(const char *path, int flags, mode_t mode) {
 
 fail:
   if (inode) {
-    fs_inode_destroy(inode);
+    inode_destroy(inode);
   }
   return errno;
 }
@@ -90,7 +90,7 @@ int fs_unlink(const char *path) {
     return -ENAMETOOLONG;
   }
 
-  if (!(dentry = fs_dentry_lookup(path))) {
+  if (!(dentry = dentry_lookup(path))) {
     return -ENOENT;
   }
 
@@ -99,12 +99,12 @@ int fs_unlink(const char *path) {
     return -EISDIR;
   }
 
-  if ((r = fs_dentry_unlink(dentry)) < 0) {
+  if ((r = dentry_unlink(dentry)) < 0) {
     return r;
   }
 
   if (inode->nlinks == 0) {
-    fs_inode_destroy(inode);
+    inode_destroy(inode);
   }
 
   return 0;
@@ -122,34 +122,34 @@ int fs_mkdir(const char *path, mode_t mode) {
     return -ENAMETOOLONG;
   }
 
-  if (fs_dentry_lookup(path)) {
+  if (dentry_lookup(path)) {
     return -EEXIST;
   }
 
   strcpy(buf, path);
-  if (!(parent_dentry = fs_dentry_lookup(dirname(buf)))) {
+  if (!(parent_dentry = dentry_lookup(dirname(buf)))) {
     return -ENOENT;
   }
 
   strcpy(buf, path);
-  if (!(inode = fs_inode_create((mode & 0777) | S_IFDIR))) {
+  if (!(inode = inode_create((mode & 0777) | S_IFDIR))) {
     errno = -ENOSPC;
     goto fail;
   }
 
-  if ((errno = fs_dentry_link(parent_dentry, basename(buf), inode)) < 0) {
+  if ((errno = dentry_link(parent_dentry, basename(buf), inode)) < 0) {
     goto fail;
   }
 
-  if (!(dentry = fs_dentry_lookup(path))) {
+  if (!(dentry = dentry_lookup(path))) {
     goto fail;
   }
 
-  if ((errno = fs_dentry_link(dentry, ".", inode)) < 0) {
+  if ((errno = dentry_link(dentry, ".", inode)) < 0) {
     goto fail;
   }
 
-  if ((errno = fs_dentry_link(dentry, "..", dentry->parent->inode)) < 0) {
+  if ((errno = dentry_link(dentry, "..", dentry->parent->inode)) < 0) {
     goto fail;
   }
 
@@ -161,7 +161,7 @@ fail:
   }
 
   if (inode) {
-    fs_inode_destroy(inode);
+    inode_destroy(inode);
   }
 
   return errno;
@@ -175,7 +175,7 @@ int fs_rmdir(const char *path) {
     return -ENAMETOOLONG;
   }
 
-  if (!(dentry = fs_dentry_lookup(path))) {
+  if (!(dentry = dentry_lookup(path))) {
     return -ENOENT;
   }
 
@@ -197,7 +197,7 @@ int fs_rmdir(const char *path) {
 
   inode = dentry->inode;
   remove_dentry_and_children(dentry);
-  fs_inode_destroy(inode);
+  inode_destroy(inode);
 
   return 0;
 }
@@ -205,7 +205,7 @@ int fs_rmdir(const char *path) {
 int fs_lstat64(const char *path, struct stat64 *buf) {
   struct dentry *dentry;
 
-  if (!(dentry = fs_dentry_lookup(path))) {
+  if (!(dentry = dentry_lookup(path))) {
     return -ENOENT;
   }
 

@@ -14,17 +14,29 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#ifndef _CYANURUS_FS_BLOCK_H_
-#define _CYANURUS_FS_BLOCK_H_
+/*
+$shutdown
+*/
+TEST(test_dentry_init);
 
-#include "lib/type.h"
+/*
+$shutdown
+*/
+TEST(test_dentry_lookup_0);
 
-#define BLOCK_SIZE (1024*4)
+/*
+$fixture copy_sbin_init
+$shutdown
+*/
+TEST(test_dentry_lookup_1);
 
-typedef uint16_t block_index;
+/*
+$shutdown
+*/
+TEST(test_dentry_link);
 
-void fs_block_init(void);
-void fs_block_read(block_index index, void *data);
-void fs_block_write(block_index index, const void *data);
-
-#endif
+/*
+$fixture copy_sbin_init
+$shutdown
+*/
+TEST(test_dentry_unlink);

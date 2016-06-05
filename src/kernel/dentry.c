@@ -16,7 +16,7 @@ limitations under the License.
 
 /* FIXME: error handling is broken */
 
-#include "fs/dentry.h"
+#include "dentry.h"
 #include "lib/string.h"
 #include "slab.h"
 #include "logger.h"
@@ -67,7 +67,7 @@ static int read_children(struct dentry *dentry) {
   }
 
   while (1) {
-    if ((rs = fs_inode_read(dentry->inode, BLOCK_SIZE, offset, dirents)) < 0) {
+    if ((rs = inode_read(dentry->inode, BLOCK_SIZE, offset, dirents)) < 0) {
       goto fail;
     }
 
@@ -83,7 +83,7 @@ static int read_children(struct dentry *dentry) {
       dirent = &dirents[i];
 
       if (dirent->d_ino) {
-        child_dentry = alloc_dentry(dentry, fs_inode_get(dirent->d_ino), dirent->d_name);
+        child_dentry = alloc_dentry(dentry, inode_get(dirent->d_ino), dirent->d_name);
         list_add(&children, &child_dentry->sibling);
       }
     }
@@ -112,7 +112,7 @@ static int write_child(struct dentry *dentry) {
   memset(dirent.d_name, 0, NAME_MAX);
   strcpy(dirent.d_name, dentry->name);
 
-  if (fs_inode_write(parent->inode, DIRENT_SIZE, parent->inode->size, &dirent) < 0) {
+  if (inode_write(parent->inode, DIRENT_SIZE, parent->inode->size, &dirent) < 0) {
     return -1;
   }
 
@@ -128,7 +128,7 @@ static int remove_child(struct dentry *dentry, const char *name) {
   struct minix3_dirent *dirents = page_address(page);
 
   while (1) {
-    if ((rs = fs_inode_read(dentry->inode, BLOCK_SIZE, offset, dirents)) < 0) {
+    if ((rs = inode_read(dentry->inode, BLOCK_SIZE, offset, dirents)) < 0) {
       return -1;
     }
 
@@ -142,7 +142,7 @@ static int remove_child(struct dentry *dentry, const char *name) {
       if (dirent->d_ino && !strncmp(dirent->d_name, name, NAME_MAX)) {
         dirent->d_ino = 0;
 
-        if (fs_inode_write(dentry->inode, DIRENT_SIZE, offset + (i * DIRENT_SIZE), dirent) != DIRENT_SIZE) {
+        if (inode_write(dentry->inode, DIRENT_SIZE, offset + (i * DIRENT_SIZE), dirent) != DIRENT_SIZE) {
           return -1;
         }
 
@@ -218,7 +218,7 @@ static int create_dentry(struct dentry *dentry, const char *name, struct inode *
 
   dentry->nentries++;
   new->inode->nlinks++;
-  fs_inode_set(new->inode);
+  inode_set(new->inode);
 
   return 0;
 }
@@ -232,7 +232,7 @@ static int destroy_dentry(struct dentry *dentry) {
 
   parent->nentries--;
   dentry->inode->nlinks--;
-  fs_inode_set(dentry->inode);
+  inode_set(dentry->inode);
 
   list_remove(&dentry->sibling);
   slab_cache_free(dentry_cache, dentry);
@@ -240,22 +240,22 @@ static int destroy_dentry(struct dentry *dentry) {
   return 0;
 }
 
-void fs_dentry_init(void) {
+void dentry_init(void) {
   dentry_cache = slab_cache_create("dentry", sizeof(struct dentry));
-  root_dentry = alloc_dentry(NULL, fs_inode_get(1), "");
+  root_dentry = alloc_dentry(NULL, inode_get(1), "");
 }
 
-struct dentry *fs_dentry_lookup(const char *path) {
+struct dentry *dentry_lookup(const char *path) {
   if (strnlen(path, PATH_MAX) == PATH_MAX) {
     return NULL;
   }
   return lookup_dentry(path);
 }
 
-int fs_dentry_link(struct dentry *dentry, const char *path, struct inode *inode) {
+int dentry_link(struct dentry *dentry, const char *path, struct inode *inode) {
   return create_dentry(dentry, path, inode);
 }
 
-int fs_dentry_unlink(struct dentry *dentry) {
+int dentry_unlink(struct dentry *dentry) {
   return destroy_dentry(dentry);
 }

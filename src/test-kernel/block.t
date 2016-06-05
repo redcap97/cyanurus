@@ -17,24 +17,9 @@ limitations under the License.
 /*
 $shutdown
 */
-TEST(test_fs_inode_create_0);
+TEST(test_block_read);
 
 /*
 $shutdown
 */
-TEST(test_fs_inode_create_1);
-
-/*
-$shutdown
-*/
-TEST(test_fs_inode_create_2);
-
-/*
-$shutdown
-*/
-TEST(test_fs_inode_create_3);
-
-/*
-$shutdown
-*/
-TEST(test_fs_inode_destroy);
+TEST(test_block_write);

@@ -14,29 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#ifndef _CYANURUS_FS_DENTRY_H_
-#define _CYANURUS_FS_DENTRY_H_
+#ifndef _CYANURUS_FS_SUPERBLOCK_H_
+#define _CYANURUS_FS_SUPERBLOCK_H_
 
-#include "fs/inode.h"
 #include "minix.h"
-#include "lib/list.h"
 
-#define PATH_MAX 1024
-#define DF_FLAGS_LOAD (1 << 0)
-
-struct dentry {
-  char name[NAME_MAX];
-  uint32_t flags;
-  uint32_t nentries;
-  struct inode *inode;
-  struct dentry *parent;
-  struct list children;
-  struct list sibling;
-};
-
-void fs_dentry_init(void);
-struct dentry *fs_dentry_lookup(const char *path);
-int fs_dentry_link(struct dentry *dentry, const char *path, struct inode *inode);
-int fs_dentry_unlink(struct dentry *dentry);
+extern struct minix3_superblock superblock;
+void superblock_init(void);
 
 #endif

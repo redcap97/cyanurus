@@ -17,26 +17,24 @@ limitations under the License.
 /*
 $shutdown
 */
-TEST(test_fs_dentry_init);
+TEST(test_inode_create_0);
 
 /*
 $shutdown
 */
-TEST(test_fs_dentry_lookup_0);
-
-/*
-$fixture copy_sbin_init
-$shutdown
-*/
-TEST(test_fs_dentry_lookup_1);
+TEST(test_inode_create_1);
 
 /*
 $shutdown
 */
-TEST(test_fs_dentry_link);
+TEST(test_inode_create_2);
 
 /*
-$fixture copy_sbin_init
 $shutdown
 */
-TEST(test_fs_dentry_unlink);
+TEST(test_inode_create_3);
+
+/*
+$shutdown
+*/
+TEST(test_inode_destroy);

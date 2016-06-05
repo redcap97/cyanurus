@@ -19,7 +19,7 @@ limitations under the License.
 
 #include "lib/type.h"
 #include "lib/list.h"
-#include "fs/block.h"
+#include "block.h"
 
 #define S_ISREG(m)  (m & S_IFREG)
 #define S_ISDIR(m)  (m & S_IFDIR)
@@ -63,13 +63,13 @@ struct inode {
   size_t size;
 };
 
-void fs_inode_init(void);
-struct inode *fs_inode_create(uint32_t mode);
-int fs_inode_destroy(struct inode *inode);
-void fs_inode_truncate(struct inode *inode, size_t size);
-struct inode *fs_inode_get(inode_index index);
-void fs_inode_set(struct inode *inode);
-ssize_t fs_inode_write(struct inode *inode, size_t size, size_t start, const void *data);
-ssize_t fs_inode_read(struct inode *inode, size_t size, size_t start, void *data);
+void inode_init(void);
+struct inode *inode_create(uint32_t mode);
+int inode_destroy(struct inode *inode);
+void inode_truncate(struct inode *inode, size_t size);
+struct inode *inode_get(inode_index index);
+void inode_set(struct inode *inode);
+ssize_t inode_write(struct inode *inode, size_t size, size_t start, const void *data);
+ssize_t inode_read(struct inode *inode, size_t size, size_t start, void *data);
 
 #endif

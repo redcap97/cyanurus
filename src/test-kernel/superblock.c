@@ -14,21 +14,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include <fs/superblock.c>
+#include <superblock.c>
 
 #include "test.h"
-#include "fs/superblock.t"
+#include "superblock.t"
 
 #include "page.h"
 #include "logger.h"
 
 static void setup(void) {
   page_init();
-  fs_block_init();
-  fs_superblock_init();
+  block_init();
+  superblock_init();
 }
 
-TEST(test_fs_superblock_init) {
+TEST(test_superblock_init) {
   setup();
 
   TEST_ASSERT(superblock.s_ninodes       > 0);
