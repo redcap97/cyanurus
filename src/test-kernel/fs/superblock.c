@@ -24,7 +24,7 @@ limitations under the License.
 
 static void setup(void) {
   page_init();
-  fs_block_init();
+  block_init();
   fs_superblock_init();
 }
 

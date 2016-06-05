@@ -21,7 +21,7 @@ limitations under the License.
 
 static void setup(void) {
   page_init();
-  fs_block_init();
+  block_init();
 }
 
 static void assert_pattern(int pat, char *start, char *end) {

@@ -91,7 +91,7 @@ static struct block *get_block(block_index index) {
   return block;
 }
 
-void fs_block_init(void) {
+void block_init(void) {
   mmc_init();
 
   block_cache = slab_cache_create("block", sizeof(struct block));

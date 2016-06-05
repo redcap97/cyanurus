@@ -23,7 +23,7 @@ limitations under the License.
 
 typedef uint16_t block_index;
 
-void fs_block_init(void);
+void block_init(void);
 void fs_block_read(block_index index, void *data);
 void fs_block_write(block_index index, const void *data);
 
