@@ -37,7 +37,7 @@ static void remove_dentry_and_children(struct dentry *dentry) {
 void fs_init(void) {
   block_init();
   superblock_init();
-  fs_inode_init();
+  inode_init();
   dentry_init();
 }
 
@@ -62,7 +62,7 @@ int fs_create(const char *path, int flags, mode_t mode) {
     return -EEXIST;
   }
 
-  if (!(inode = fs_inode_create((mode & 0777) | S_IFREG))) {
+  if (!(inode = inode_create((mode & 0777) | S_IFREG))) {
     errno = -ENOSPC;
     goto fail;
   }
@@ -76,7 +76,7 @@ int fs_create(const char *path, int flags, mode_t mode) {
 
 fail:
   if (inode) {
-    fs_inode_destroy(inode);
+    inode_destroy(inode);
   }
   return errno;
 }
@@ -104,7 +104,7 @@ int fs_unlink(const char *path) {
   }
 
   if (inode->nlinks == 0) {
-    fs_inode_destroy(inode);
+    inode_destroy(inode);
   }
 
   return 0;
@@ -132,7 +132,7 @@ int fs_mkdir(const char *path, mode_t mode) {
   }
 
   strcpy(buf, path);
-  if (!(inode = fs_inode_create((mode & 0777) | S_IFDIR))) {
+  if (!(inode = inode_create((mode & 0777) | S_IFDIR))) {
     errno = -ENOSPC;
     goto fail;
   }
@@ -161,7 +161,7 @@ fail:
   }
 
   if (inode) {
-    fs_inode_destroy(inode);
+    inode_destroy(inode);
   }
 
   return errno;
@@ -197,7 +197,7 @@ int fs_rmdir(const char *path) {
 
   inode = dentry->inode;
   remove_dentry_and_children(dentry);
-  fs_inode_destroy(inode);
+  inode_destroy(inode);
 
   return 0;
 }

@@ -951,7 +951,7 @@ int process_open(const char *path, int flags, mode_t mode) {
   file->dentry = dentry;
 
   if (flags & O_TRUNC) {
-    fs_inode_truncate(dentry->inode, 0);
+    inode_truncate(dentry->inode, 0);
   }
 
   if (flags & O_CLOEXEC) {
@@ -1009,7 +1009,7 @@ ssize_t process_write(int fd, const void *data, size_t size) {
         file->offset = inode->size;
       }
 
-      if ((r = fs_inode_write(inode, size, file->offset, data)) < 0) {
+      if ((r = inode_write(inode, size, file->offset, data)) < 0) {
         return r;
       }
 
@@ -1050,7 +1050,7 @@ ssize_t process_read(int fd, void *data, size_t size) {
         return -EISDIR;
       }
 
-      if ((r = fs_inode_read(file->dentry->inode, size, file->offset, data)) < 0) {
+      if ((r = inode_read(file->dentry->inode, size, file->offset, data)) < 0) {
         return r;
       }
       file->offset += r;
@@ -1090,7 +1090,7 @@ int process_getdents64(int fd, struct dirent64 *data, size_t size) {
   inode = file->dentry->inode;
 
   while (1) {
-    nread = fs_inode_read(inode, sizeof(struct minix3_dirent), file->offset, &minix3_dirent);
+    nread = inode_read(inode, sizeof(struct minix3_dirent), file->offset, &minix3_dirent);
     r = (buf - (char*)data);
 
     if (nread < 0) {

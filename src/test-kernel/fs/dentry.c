@@ -27,7 +27,7 @@ static void setup(void) {
 
   block_init();
   superblock_init();
-  fs_inode_init();
+  inode_init();
   dentry_init();
 }
 
@@ -86,7 +86,7 @@ TEST(test_dentry_link) {
   setup();
   dentry_lookup("/");
 
-  inode = fs_inode_create(S_IFREG | 0755);
+  inode = inode_create(S_IFREG | 0755);
   TEST_ASSERT(inode != NULL);
 
   TEST_ASSERT(inode->nlinks == 0);

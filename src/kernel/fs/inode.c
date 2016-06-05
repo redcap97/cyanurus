@@ -401,12 +401,12 @@ static size_t calculate_block_copy_size(size_t start, size_t size) {
   return (offset + size) > BLOCK_SIZE ? (BLOCK_SIZE - offset) : size;
 }
 
-void fs_inode_init(void) {
+void inode_init(void) {
   inode_cache = slab_cache_create("inode", sizeof(struct inode));
   list_init(&inodes);
 }
 
-struct inode *fs_inode_create(uint32_t mode) {
+struct inode *inode_create(uint32_t mode) {
   struct inode *inode;
   struct minix2_inode minix_inode;
   inode_index index = mark_imap();
@@ -426,9 +426,9 @@ struct inode *fs_inode_create(uint32_t mode) {
   return inode;
 }
 
-int fs_inode_destroy(struct inode *inode) {
+int inode_destroy(struct inode *inode) {
   struct minix2_inode minix_inode;
-  fs_inode_truncate(inode, 0);
+  inode_truncate(inode, 0);
 
   read_inode(inode->index, &minix_inode);
   unmark_zmap(minix_inode.i_zone[0]);
@@ -438,7 +438,7 @@ int fs_inode_destroy(struct inode *inode) {
   return 0;
 }
 
-void fs_inode_truncate(struct inode *inode, size_t size) {
+void inode_truncate(struct inode *inode, size_t size) {
   struct minix2_inode minix_inode;
   size_t tsize, tstart, toffset, tcopy;
   block_index ind_block;
@@ -479,7 +479,7 @@ void fs_inode_truncate(struct inode *inode, size_t size) {
   }
 }
 
-struct inode *fs_inode_get(inode_index index) {
+struct inode *inode_get(inode_index index) {
   struct inode *inode;
   struct minix2_inode minix_inode;
 
@@ -493,7 +493,7 @@ struct inode *fs_inode_get(inode_index index) {
   return inode;
 }
 
-void fs_inode_set(struct inode *inode) {
+void inode_set(struct inode *inode) {
   struct minix2_inode minix_inode;
   read_inode(inode->index, &minix_inode);
 
@@ -504,7 +504,7 @@ void fs_inode_set(struct inode *inode) {
   write_inode(inode->index, &minix_inode);
 }
 
-ssize_t fs_inode_write(struct inode *inode, size_t size, size_t start, const void *data) {
+ssize_t inode_write(struct inode *inode, size_t size, size_t start, const void *data) {
   block_index ind_zone, ind_block, ind_start, ind_end;
 
   const char *cur_data = data;
@@ -525,7 +525,7 @@ ssize_t fs_inode_write(struct inode *inode, size_t size, size_t start, const voi
     copy = calculate_block_copy_size(cur_start, cur_size);
 
     if ((cur_start + copy) > inode->size) {
-      fs_inode_truncate(inode, cur_start + copy);
+      inode_truncate(inode, cur_start + copy);
     }
 
     ind_block = get_block(inode, ind_zone);
@@ -542,7 +542,7 @@ ssize_t fs_inode_write(struct inode *inode, size_t size, size_t start, const voi
   return size;
 }
 
-ssize_t fs_inode_read(struct inode *inode, size_t size, size_t start, void *data) {
+ssize_t inode_read(struct inode *inode, size_t size, size_t start, void *data) {
   block_index ind_zone, ind_block, ind_start, ind_end;
   size_t offset, copy, cur_size, cur_start;
 
