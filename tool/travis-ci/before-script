@@ -10,9 +10,9 @@ RUBY_VERSION="2.3.1"
 RUBY_FILENAME="ruby-${RUBY_VERSION}.tar.bz2"
 RUBY_URL="https://rubies.travis-ci.org/ubuntu/14.04/x86_64/${RUBY_FILENAME}"
 
-FUSE_MFS_VERSION="0.4"
+FUSE_MFS_TAG="v0.4"
 FUSE_MFS_FILENAME="fuse-mfs_0.4-d25f058_amd64.deb"
-FUSE_MFS_URL="https://github.com/redcap97/fuse-mfs/releases/download/v${FUSE_MFS_VERSION}/${FUSE_MFS_FILENAME}"
+FUSE_MFS_URL="https://github.com/redcap97/fuse-mfs/releases/download/${FUSE_MFS_TAG}/${FUSE_MFS_FILENAME}"
 
 wget ${QEMU_URL}
 tar jxf ${QEMU_FILENAME}
