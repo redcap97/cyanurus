@@ -66,7 +66,7 @@ struct inode {
 void inode_init(void);
 struct inode *inode_create(uint32_t mode);
 int inode_destroy(struct inode *inode);
-void inode_truncate(struct inode *inode, size_t size);
+int inode_truncate(struct inode *inode, size_t size);
 struct inode *inode_get(inode_index index);
 void inode_set(struct inode *inode);
 ssize_t inode_write(struct inode *inode, size_t size, size_t start, const void *data);

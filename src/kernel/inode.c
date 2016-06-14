@@ -17,6 +17,7 @@ limitations under the License.
 #include "inode.h"
 #include "superblock.h"
 #include "lib/string.h"
+#include "lib/errno.h"
 #include "slab.h"
 #include "logger.h"
 #include "system.h"
@@ -162,7 +163,7 @@ static void write_inode(inode_index index, const struct minix2_inode *inode) {
   block_write(INODE_ZONE_INDEX + inode_block, inodes);
 }
 
-static void extend_zone(struct minix2_inode *inode, size_t size) {
+static int extend_zone(struct minix2_inode *inode, size_t size) {
   block_index block, start, end;
   block_index z0, z1, z2;
 
@@ -173,7 +174,7 @@ static void extend_zone(struct minix2_inode *inode, size_t size) {
   end = (size / BLOCK_SIZE) + 1;
 
   if (end < start) {
-    return;
+    return 0;
   }
 
   for (block = start; block < end; ++block) {
@@ -237,9 +238,10 @@ static void extend_zone(struct minix2_inode *inode, size_t size) {
   }
 
   inode->i_size = size;
-  return;
+  return 0;
 fail:
   inode->i_size = block * BLOCK_SIZE;
+  return -ENOSPC;
 }
 
 static void shrink_zone(struct minix2_inode *inode, size_t size) {
@@ -436,7 +438,7 @@ int inode_destroy(struct inode *inode) {
   return 0;
 }
 
-void inode_truncate(struct inode *inode, size_t size) {
+int inode_truncate(struct inode *inode, size_t size) {
   struct minix2_inode minix_inode;
   size_t tsize, tstart, toffset, tcopy;
   block_index ind_block;
@@ -475,6 +477,8 @@ void inode_truncate(struct inode *inode, size_t size) {
     inode->size = minix_inode.i_size;
     write_inode(inode->index, &minix_inode);
   }
+
+  return 0;
 }
 
 struct inode *inode_get(inode_index index) {
