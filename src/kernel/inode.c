@@ -540,7 +540,7 @@ ssize_t inode_write(struct inode *inode, size_t size, size_t start, const void *
     if ((cur_start + copy) > inode->size) {
       r = inode_truncate(inode, cur_start + copy);
       if (r < 0) {
-        return (size == cur_size) ? r : (size - cur_size);
+        return (size == cur_size) ? r : (ssize_t)(size - cur_size);
       }
     }
 
