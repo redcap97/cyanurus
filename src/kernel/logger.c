@@ -20,10 +20,13 @@ limitations under the License.
 #include "uart.h"
 #include "config.h"
 
+/* In order to disable gcc warnings (-Wtype-limits) */
+static const enum logger_level logger_level = CYANURUS_LOGGER_LEVEL;
+
 static int logger_write(enum logger_level level, const char *format, va_list ap) {
   char str[128];
 
-  if ((volatile enum logger_level)level < CYANURUS_LOGGER_LEVEL) {
+  if (level < logger_level) {
     return 0;
   }
 
