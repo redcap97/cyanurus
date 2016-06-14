@@ -24,7 +24,9 @@ limitations under the License.
 #include "buddy.h"
 
 #define IMAP_BLOCKS     (superblock.s_imap_blocks)
+#define IMAP_LIMITS     (superblock.s_ninodes)
 #define ZMAP_BLOCKS     (superblock.s_zmap_blocks)
+#define ZMAP_LIMITS     (superblock.s_zones - superblock.s_firstdatazone)
 #define FIRST_DATA_ZONE (superblock.s_firstdatazone)
 
 #define IMAP_ZONE_INDEX  2
@@ -59,7 +61,7 @@ static void release_inode(struct inode *inode) {
   slab_cache_free(inode_cache, inode);
 }
 
-static uint32_t mark_map(block_index start, block_index end) {
+static uint32_t mark_map(block_index start, block_index end, uint32_t limit) {
   int i, b;
   uint32_t index;
   block_index block;
@@ -77,6 +79,10 @@ static uint32_t mark_map(block_index start, block_index end) {
       }
 
       for (b = 0; b < 8; ++b) {
+        if (index + b > limit) {
+          return 0;
+        }
+
         if (~buf[i] & (1 << b)) {
           buf[i] |= (1 << b);
           block_write(block, buf);
@@ -105,7 +111,7 @@ static inode_index mark_imap(void) {
   block_index start = IMAP_ZONE_INDEX;
   block_index end   = start + IMAP_BLOCKS;
 
-  return mark_map(start, end);
+  return mark_map(start, end, IMAP_LIMITS);
 }
 
 static void unmark_imap(inode_index index) {
@@ -116,7 +122,7 @@ static void unmark_imap(inode_index index) {
 static block_index mark_zmap(void) {
   block_index start = IMAP_ZONE_INDEX + IMAP_BLOCKS;
   block_index end   = start + ZMAP_BLOCKS;
-  block_index index = mark_map(start, end);
+  block_index index = mark_map(start, end, ZMAP_LIMITS);
 
   if (!index) {
     return 0;
