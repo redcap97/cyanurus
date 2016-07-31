@@ -79,7 +79,7 @@ static uint32_t mark_map(block_index start, block_index end, uint32_t limit) {
       }
 
       for (b = 0; b < 8; ++b) {
-        if (index + b > limit) {
+        if (index + b >= limit) {
           return 0;
         }
 
