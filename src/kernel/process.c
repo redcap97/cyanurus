@@ -951,7 +951,8 @@ int process_open(const char *path, int flags, mode_t mode) {
   file->dentry = dentry;
 
   if (flags & O_TRUNC) {
-    inode_truncate(dentry->inode, 0);
+    r = inode_truncate(dentry->inode, 0);
+    SYSTEM_BUG_ON(r < 0);
   }
 
   if (flags & O_CLOEXEC) {

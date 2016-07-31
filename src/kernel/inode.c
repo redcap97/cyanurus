@@ -14,18 +14,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-/* FIXME: error handling is broken */
-
 #include "inode.h"
 #include "superblock.h"
 #include "lib/string.h"
+#include "lib/errno.h"
 #include "slab.h"
 #include "logger.h"
 #include "system.h"
 #include "buddy.h"
 
 #define IMAP_BLOCKS     (superblock.s_imap_blocks)
+#define IMAP_LIMITS     (superblock.s_ninodes)
 #define ZMAP_BLOCKS     (superblock.s_zmap_blocks)
+#define ZMAP_LIMITS     (superblock.s_zones - superblock.s_firstdatazone)
 #define FIRST_DATA_ZONE (superblock.s_firstdatazone)
 
 #define IMAP_ZONE_INDEX  2
@@ -60,7 +61,7 @@ static void release_inode(struct inode *inode) {
   slab_cache_free(inode_cache, inode);
 }
 
-static uint32_t mark_map(block_index start, block_index end) {
+static uint32_t mark_map(block_index start, block_index end, uint32_t limit) {
   int i, b;
   uint32_t index;
   block_index block;
@@ -78,6 +79,10 @@ static uint32_t mark_map(block_index start, block_index end) {
       }
 
       for (b = 0; b < 8; ++b) {
+        if (index + b >= limit) {
+          return 0;
+        }
+
         if (~buf[i] & (1 << b)) {
           buf[i] |= (1 << b);
           block_write(block, buf);
@@ -106,7 +111,7 @@ static inode_index mark_imap(void) {
   block_index start = IMAP_ZONE_INDEX;
   block_index end   = start + IMAP_BLOCKS;
 
-  return mark_map(start, end);
+  return mark_map(start, end, IMAP_LIMITS);
 }
 
 static void unmark_imap(inode_index index) {
@@ -117,7 +122,7 @@ static void unmark_imap(inode_index index) {
 static block_index mark_zmap(void) {
   block_index start = IMAP_ZONE_INDEX + IMAP_BLOCKS;
   block_index end   = start + ZMAP_BLOCKS;
-  block_index index = mark_map(start, end);
+  block_index index = mark_map(start, end, ZMAP_LIMITS);
 
   if (!index) {
     return 0;
@@ -164,7 +169,7 @@ static void write_inode(inode_index index, const struct minix2_inode *inode) {
   block_write(INODE_ZONE_INDEX + inode_block, inodes);
 }
 
-static void extend_zone(struct minix2_inode *inode, size_t size) {
+static int extend_zone(struct minix2_inode *inode, size_t size) {
   block_index block, start, end;
   block_index z0, z1, z2;
 
@@ -175,7 +180,7 @@ static void extend_zone(struct minix2_inode *inode, size_t size) {
   end = (size / BLOCK_SIZE) + 1;
 
   if (end < start) {
-    return;
+    return 0;
   }
 
   for (block = start; block < end; ++block) {
@@ -239,9 +244,10 @@ static void extend_zone(struct minix2_inode *inode, size_t size) {
   }
 
   inode->i_size = size;
-  return;
+  return 0;
 fail:
   inode->i_size = block * BLOCK_SIZE;
+  return -ENOSPC;
 }
 
 static void shrink_zone(struct minix2_inode *inode, size_t size) {
@@ -418,6 +424,12 @@ struct inode *inode_create(uint32_t mode) {
   memset(&minix_inode, 0, sizeof(struct minix2_inode));
   minix_inode.i_mode = mode;
   minix_inode.i_zone[0] = mark_zmap();
+
+  if (!minix_inode.i_zone[0]) {
+    unmark_imap(index);
+    return NULL;
+  }
+
   write_inode(index, &minix_inode);
 
   inode = get_inode(index);
@@ -438,7 +450,8 @@ int inode_destroy(struct inode *inode) {
   return 0;
 }
 
-void inode_truncate(struct inode *inode, size_t size) {
+int inode_truncate(struct inode *inode, size_t size) {
+  int r;
   struct minix2_inode minix_inode;
   size_t tsize, tstart, toffset, tcopy;
   block_index ind_block;
@@ -453,13 +466,19 @@ void inode_truncate(struct inode *inode, size_t size) {
       tstart = inode->size;
       tsize = size - inode->size;
 
-      extend_zone(&minix_inode, size);
+      r = extend_zone(&minix_inode, size);
+      if (r < 0) {
+        return r;
+      }
 
       while (tsize > 0) {
         toffset = calculate_block_offset(tstart);
         tcopy = calculate_block_copy_size(tstart, tsize);
 
         ind_block = get_block(inode, tstart / BLOCK_SIZE);
+        if (!ind_block) {
+          return -ENOSPC;
+        }
         block_read(ind_block, buf);
 
         memset(buf + toffset, 0, tcopy);
@@ -477,6 +496,8 @@ void inode_truncate(struct inode *inode, size_t size) {
     inode->size = minix_inode.i_size;
     write_inode(inode->index, &minix_inode);
   }
+
+  return 0;
 }
 
 struct inode *inode_get(inode_index index) {
@@ -505,6 +526,7 @@ void inode_set(struct inode *inode) {
 }
 
 ssize_t inode_write(struct inode *inode, size_t size, size_t start, const void *data) {
+  int r, errno;
   block_index ind_zone, ind_block, ind_start, ind_end;
 
   const char *cur_data = data;
@@ -525,10 +547,18 @@ ssize_t inode_write(struct inode *inode, size_t size, size_t start, const void *
     copy = calculate_block_copy_size(cur_start, cur_size);
 
     if ((cur_start + copy) > inode->size) {
-      inode_truncate(inode, cur_start + copy);
+      r = inode_truncate(inode, cur_start + copy);
+      if (r < 0) {
+        errno = r;
+        goto fail;
+      }
     }
 
     ind_block = get_block(inode, ind_zone);
+    if (!ind_block) {
+      errno = ENOSPC;
+      goto fail;
+    }
     block_read(ind_block, buf);
 
     memcpy(buf + offset, cur_data, copy);
@@ -540,6 +570,9 @@ ssize_t inode_write(struct inode *inode, size_t size, size_t start, const void *
   }
 
   return size;
+
+fail:
+  return (size == cur_size) ? errno : (ssize_t)(size - cur_size);
 }
 
 ssize_t inode_read(struct inode *inode, size_t size, size_t start, void *data) {
@@ -568,6 +601,9 @@ ssize_t inode_read(struct inode *inode, size_t size, size_t start, void *data) {
     copy = calculate_block_copy_size(cur_start, cur_size);
 
     ind_block = get_block(inode, ind_zone);
+    if (!ind_block) {
+      return -EINVAL;
+    }
     block_read(ind_block, buf);
 
     memcpy(cur_data, buf + offset, copy);
