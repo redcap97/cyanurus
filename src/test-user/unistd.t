@@ -137,6 +137,13 @@ TEST(unistd_open_O_EXCL);
 /*
 $fixture copy_test_target
 $fixture mkdir_tmp
+$fixture write_until_disk_full
+*/
+TEST(unistd_open_ENOSPC);
+
+/*
+$fixture copy_test_target
+$fixture mkdir_tmp
 */
 TEST(unistd_unlink);
 
