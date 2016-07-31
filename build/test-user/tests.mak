@@ -4,3 +4,4 @@ TESTS += unistd_ioctl_TIOCGWINSZ termios_tcgetattr termios_tcsetattr unistd_fcnt
 TESTS += unistd_fcntl_F_SETFL unistd_wait unistd_pipe unistd_pipe_SIGPIPE unistd_pipe_EPIPE unistd_pipe2
 TESTS += unistd_open_O_APPEND unistd_open_O_TRUNC unistd_open_O_CREAT unistd_open_O_EXCL utsname_uname unistd_unlink
 TESTS += unistd_open unistd_getcwd unistd_syscall_EFAULT signal_SIGSEGV unistd_lseek unistd_open_ENOSPC
+TESTS += unistd_write_ENOSPC
