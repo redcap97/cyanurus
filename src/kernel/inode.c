@@ -476,6 +476,9 @@ int inode_truncate(struct inode *inode, size_t size) {
         tcopy = calculate_block_copy_size(tstart, tsize);
 
         ind_block = get_block(inode, tstart / BLOCK_SIZE);
+        if (!ind_block) {
+          return -ENOSPC;
+        }
         block_read(ind_block, buf);
 
         memset(buf + toffset, 0, tcopy);
@@ -523,7 +526,7 @@ void inode_set(struct inode *inode) {
 }
 
 ssize_t inode_write(struct inode *inode, size_t size, size_t start, const void *data) {
-  int r;
+  int r, errno;
   block_index ind_zone, ind_block, ind_start, ind_end;
 
   const char *cur_data = data;
@@ -546,11 +549,16 @@ ssize_t inode_write(struct inode *inode, size_t size, size_t start, const void *
     if ((cur_start + copy) > inode->size) {
       r = inode_truncate(inode, cur_start + copy);
       if (r < 0) {
-        return (size == cur_size) ? r : (ssize_t)(size - cur_size);
+        errno = r;
+        goto fail;
       }
     }
 
     ind_block = get_block(inode, ind_zone);
+    if (!ind_block) {
+      errno = ENOSPC;
+      goto fail;
+    }
     block_read(ind_block, buf);
 
     memcpy(buf + offset, cur_data, copy);
@@ -562,6 +570,9 @@ ssize_t inode_write(struct inode *inode, size_t size, size_t start, const void *
   }
 
   return size;
+
+fail:
+  return (size == cur_size) ? errno : (ssize_t)(size - cur_size);
 }
 
 ssize_t inode_read(struct inode *inode, size_t size, size_t start, void *data) {
@@ -590,6 +601,9 @@ ssize_t inode_read(struct inode *inode, size_t size, size_t start, void *data) {
     copy = calculate_block_copy_size(cur_start, cur_size);
 
     ind_block = get_block(inode, ind_zone);
+    if (!ind_block) {
+      return -EINVAL;
+    }
     block_read(ind_block, buf);
 
     memcpy(cur_data, buf + offset, copy);
