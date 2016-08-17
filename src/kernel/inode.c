@@ -444,6 +444,8 @@ int inode_destroy(struct inode *inode) {
 
   read_inode(inode->index, &minix_inode);
   unmark_zmap(minix_inode.i_zone[0]);
+  memset(&minix_inode, 0, sizeof(struct minix2_inode));
+  write_inode(inode->index, &minix_inode);
 
   unmark_imap(inode->index);
   release_inode(inode);
