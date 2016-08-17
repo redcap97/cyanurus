@@ -37,4 +37,9 @@ TEST(test_inode_create_3);
 /*
 $shutdown
 */
-TEST(test_inode_destroy);
+TEST(test_inode_destroy_0);
+
+/*
+$shutdown
+*/
+TEST(test_inode_destroy_1);
