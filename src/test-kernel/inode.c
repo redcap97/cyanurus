@@ -88,7 +88,7 @@ TEST(test_inode_create_3) {
   TEST_ASSERT(list_length(&inodes) == 2);
 }
 
-TEST(test_inode_destroy) {
+TEST(test_inode_destroy_0) {
   struct inode *inode;
 
   setup();
@@ -99,4 +99,22 @@ TEST(test_inode_destroy) {
 
   inode_destroy(inode);
   TEST_ASSERT(list_length(&inodes) == 0);
+}
+
+TEST(test_inode_destroy_1) {
+  struct inode *inode;
+  struct minix2_inode minix_inode;
+  inode_index index;
+
+  setup();
+
+  inode = inode_create(S_IFREG | 0755);
+  index = inode->index;
+
+  read_inode(index, &minix_inode);
+  TEST_ASSERT(minix_inode.i_mode != 0);
+
+  inode_destroy(inode);
+  read_inode(index, &minix_inode);
+  TEST_ASSERT(minix_inode.i_mode == 0);
 }
