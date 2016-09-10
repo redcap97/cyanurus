@@ -558,7 +558,7 @@ ssize_t inode_write(struct inode *inode, size_t size, size_t start, const void *
 
     ind_block = get_block(inode, ind_zone);
     if (!ind_block) {
-      errno = EINVAL;
+      errno = -EINVAL;
       goto fail;
     }
     block_read(ind_block, buf);
