@@ -603,11 +603,11 @@ ssize_t inode_read(struct inode *inode, size_t size, size_t start, void *data) {
     copy = calculate_block_copy_size(cur_start, cur_size);
 
     ind_block = get_block(inode, ind_zone);
-    if (!ind_block) {
-      return -EINVAL;
+    if (ind_block) {
+      block_read(ind_block, buf);
+    } else {
+      memset(buf, 0, BLOCK_SIZE);
     }
-    block_read(ind_block, buf);
-
     memcpy(cur_data, buf + offset, copy);
 
     cur_data  += copy;
