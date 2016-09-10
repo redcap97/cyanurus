@@ -10,7 +10,7 @@ Cyanurus is a Unix-like operating system for ARMv7-A.
 
 Cyanurus kernel and rootfs image are available at below link:
 
-https://github.com/redcap97/cyanurus/releases/download/v0.2.0/cyanurus-0.2.0.tar.xz
+https://github.com/redcap97/cyanurus/releases/download/v0.3.0/cyanurus-0.3.0.tar.xz
 
 QEMU is required to run Cyanurus. Please type following command:
 
