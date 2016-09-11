@@ -1129,7 +1129,7 @@ int process_getdents64(int fd, struct dirent64 *data, size_t size) {
     file->offset += nread;
   }
 
-  return 0;
+  return size;
 }
 
 loff_t process_llseek(int fd, loff_t offset, int whence) {
