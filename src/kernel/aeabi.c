@@ -25,6 +25,10 @@ void __aeabi_memcpy(void *dest, const void *src, size_t size) {
   memcpy(dest, src, size);
 }
 
+void __aeabi_memclr(void *dest, size_t n) {
+  memset(dest, 0, n);
+}
+
 void __aeabi_memclr8(void *dest, size_t n) {
   memset(dest, 0, n);
 }
